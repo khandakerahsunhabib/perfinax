@@ -49,7 +49,7 @@ class _AnimatedEmptyTransactionsState extends State<AnimatedEmptyTransactions>
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFF0A221C),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.emerald.withValues(alpha: 0.15)),
       ),
@@ -84,7 +84,7 @@ class _AnimatedEmptyTransactionsState extends State<AnimatedEmptyTransactions>
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF030A08),
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         border: Border.all(
                           color: const Color(0xFF10B981)
                               .withValues(alpha: 0.5),

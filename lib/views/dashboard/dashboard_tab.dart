@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_categories.dart';
 import '../../controllers/data_controller.dart';
@@ -29,10 +34,12 @@ class DashboardTab extends StatefulWidget {
 }
 
 class _DashboardTabState extends State<DashboardTab> {
-  // Transaction List Filters
+  // Transaction List Filters & Pagination
   String _txCatFilter = 'ALL';
   final String _sortBy = 'date';
   bool _sortAscending = false;
+  int _currentPage = 0;
+  static const int _itemsPerPage = 5;
 
   void _openAddTransactionModal() {
     showAddTransactionModal(
@@ -50,7 +57,7 @@ class _DashboardTabState extends State<DashboardTab> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF0A221C),
+          backgroundColor: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(color: AppColors.rose400.withValues(alpha: 0.3)),
@@ -175,6 +182,20 @@ class _DashboardTabState extends State<DashboardTab> {
       }
     }
 
+    double periodIncome = 0;
+    double periodExpense = 0;
+    double periodSavings = 0;
+
+    for (var t in periodTxs) {
+      if (t.type == 'income' || t.category == 'Cash Received') {
+        periodIncome += t.amount;
+      } else if (t.type == 'expense') {
+        periodExpense += t.amount;
+      } else if (t.type == 'saving') {
+        periodSavings += t.amount;
+      }
+    }
+
     final double remainingBalance = primary + secondary + mfs + cash;
 
     // Filter & Sorting for Transactions list
@@ -189,6 +210,17 @@ class _DashboardTabState extends State<DashboardTab> {
           : a.date.compareTo(b.date);
       return _sortAscending ? cmp : -cmp;
     });
+
+    final int totalPages = (filteredList.length / _itemsPerPage).ceil() == 0
+        ? 1
+        : (filteredList.length / _itemsPerPage).ceil();
+    if (_currentPage >= totalPages) _currentPage = totalPages - 1;
+    if (_currentPage < 0) _currentPage = 0;
+
+    final paginatedList = filteredList
+        .skip(_currentPage * _itemsPerPage)
+        .take(_itemsPerPage)
+        .toList();
 
     final String pBankLabel =
         user.primaryBank.isNotEmpty ? user.primaryBank : 'Primary Bank';
@@ -209,7 +241,7 @@ class _DashboardTabState extends State<DashboardTab> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0A221C),
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                       color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -277,7 +309,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                          color: const Color(0xFF030A08),
+                          color: Theme.of(context).scaffoldBackgroundColor,
                           borderRadius: BorderRadius.circular(12)),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -312,35 +344,10 @@ class _DashboardTabState extends State<DashboardTab> {
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.slate300,
+                          color: Color(0xFF10B981),
                           letterSpacing: 0.5)),
                   Row(
                     children: [
-                      InkWell(
-                        onTap: _openAddTransactionModal,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                              color: const Color(0xFF064E3B),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: const Color(0xFF10B981))),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.add_rounded,
-                                  size: 14, color: Color(0xFF10B981)),
-                              SizedBox(width: 4),
-                              Text('Log Transaction',
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF10B981),
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       InkWell(
                         onTap: () {
                           final allCats = [
@@ -362,7 +369,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF0A221C),
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(8)),
                           child: Text(_txCatFilter,
                               style: const TextStyle(
@@ -406,7 +413,7 @@ class _DashboardTabState extends State<DashboardTab> {
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                            color: const Color(0xFF0A221C),
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: AppColors.emerald
@@ -486,12 +493,23 @@ class _DashboardTabState extends State<DashboardTab> {
                         ),
                       );
                     },
-                    childCount: filteredList.length,
+                    childCount: paginatedList.length,
                   ),
                 ),
 
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 16),
+          // 4. PAGINATION, SELECTED PERIOD SUMMARY & DEVICE STORAGE OPTIONS
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildPaginationBar(filteredList.length, totalPages),
+                const SizedBox(height: 16),
+                _buildSelectedPeriodSummaryCard(
+                    periodIncome, periodExpense, periodSavings),
+                const SizedBox(height: 16),
+                _buildDeviceStorageOptionsCard(),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ],
       ),
@@ -502,7 +520,7 @@ class _DashboardTabState extends State<DashboardTab> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-          color: const Color(0xFF030A08),
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(10)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,5 +536,505 @@ class _DashboardTabState extends State<DashboardTab> {
         ],
       ),
     );
+  }
+
+  Widget _buildPaginationBar(int totalItems, int totalPages) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Page ${_currentPage + 1} of $totalPages ($totalItems items)',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.slate400
+                  : const Color(0xFF64748B),
+            ),
+          ),
+          Row(
+            children: [
+              InkWell(
+                onTap: _currentPage > 0
+                    ? () => setState(() => _currentPage--)
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _currentPage > 0
+                          ? AppColors.emerald.withValues(alpha: 0.4)
+                          : AppColors.slate500.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    'Prev',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: _currentPage > 0
+                          ? Theme.of(context).colorScheme.onSurface
+                          : AppColors.slate500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: _currentPage < totalPages - 1
+                    ? () => setState(() => _currentPage++)
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _currentPage < totalPages - 1
+                          ? AppColors.emerald.withValues(alpha: 0.4)
+                          : AppColors.slate500.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    'Next',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: _currentPage < totalPages - 1
+                          ? Theme.of(context).colorScheme.onSurface
+                          : AppColors.slate500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedPeriodSummaryCard(
+      double periodIncome, double periodExpense, double periodSavings) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.emerald.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'SELECTED PERIOD SUMMARY',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF10B981),
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text('INCOME',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF10B981))),
+                    const SizedBox(height: 4),
+                    Text('+৳${periodIncome.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF10B981))),
+                  ],
+                ),
+              ),
+              Container(
+                  height: 30,
+                  width: 1,
+                  color: AppColors.emerald.withValues(alpha: 0.2)),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text('EXPENSE',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.rose400)),
+                    const SizedBox(height: 4),
+                    Text('-৳${periodExpense.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.rose400)),
+                  ],
+                ),
+              ),
+              Container(
+                  height: 30,
+                  width: 1,
+                  color: AppColors.emerald.withValues(alpha: 0.2)),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text('SAVINGS',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFC084FC))),
+                    const SizedBox(height: 4),
+                    Text('৳${periodSavings.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFC084FC))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeviceStorageOptionsCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.emerald.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'DEVICE STORAGE OPTIONS',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF10B981),
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: _handleBackupFile,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color:
+                              const Color(0xFF10B981).withValues(alpha: 0.4)),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Backup File',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: _handleRestoreData,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.emerald.withValues(alpha: 0.2)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Restore Data',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleBackupFile() async {
+    try {
+      final jsonString = widget.dataController.exportBackupJson();
+      final fileName =
+          'perfinax_backup_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.json';
+
+      Uri? savedUri;
+
+      try {
+        savedUri = await FilePicker.saveFile(
+          dialogTitle: 'Download PERFINAX Backup JSON',
+          fileName: fileName,
+          type: FileType.custom,
+          allowedExtensions: ['json'],
+          bytes: utf8.encode(jsonString),
+        );
+      } catch (_) {}
+
+      String? savedPath;
+      if (savedUri != null) {
+        try {
+          savedPath = savedUri.toFilePath();
+        } catch (_) {
+          savedPath = savedUri.path;
+        }
+      }
+
+      if (savedPath != null && savedPath.isNotEmpty) {
+        final file = File(savedPath);
+        if (!file.existsSync() || file.lengthSync() == 0) {
+          await file.writeAsString(jsonString);
+        }
+      } else {
+        final docsDir = await getApplicationDocumentsDirectory();
+        final file = File('${docsDir.path}/$fileName');
+        await file.writeAsString(jsonString);
+        savedPath = file.path;
+      }
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            backgroundColor: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                  color: AppColors.emerald.withValues(alpha: 0.3)),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.download_done_rounded,
+                    color: Color(0xFF10B981), size: 22),
+                SizedBox(width: 8),
+                Text(
+                  'Backup File Saved',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your PERFINAX data backup file has been generated and downloaded successfully.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.emerald.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_drive_file_rounded,
+                          color: Color(0xFF10B981), size: 24),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              fileName,
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (savedPath != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                savedPath,
+                                style: const TextStyle(
+                                    fontSize: 9, color: AppColors.slate400),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: jsonString));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Backup JSON copied to Clipboard!'),
+                      backgroundColor: Color(0xFF10B981),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, size: 14),
+                label: const Text('COPY JSON', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  side: const BorderSide(color: AppColors.slate500),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text('OK',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error downloading backup file: $e'),
+          backgroundColor: AppColors.rose,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleRestoreData() async {
+    try {
+      final pickedFiles = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (pickedFiles.isEmpty) return;
+
+      final pickedFile = pickedFiles.first;
+      String? jsonContent;
+
+      try {
+        final bytes = await pickedFile.readAsBytes();
+        if (bytes.isNotEmpty) {
+          jsonContent = utf8.decode(bytes);
+        }
+      } catch (_) {}
+
+      if ((jsonContent == null || jsonContent.isEmpty) &&
+          pickedFile.path != null &&
+          pickedFile.path!.isNotEmpty) {
+        final file = File(pickedFile.path!);
+        if (file.existsSync()) {
+          jsonContent = await file.readAsString();
+        }
+      }
+
+      if (jsonContent == null || jsonContent.trim().isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selected JSON file is empty or unreadable.'),
+            backgroundColor: AppColors.rose,
+          ),
+        );
+        return;
+      }
+
+      final success = await widget.dataController.importBackupJson(jsonContent);
+
+      if (!mounted) return;
+
+      if (success) {
+        widget.onDataChanged();
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Data restored successfully from "${pickedFile.name}"!'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Failed to restore data. Invalid PERFINAX JSON file format.'),
+            backgroundColor: AppColors.rose,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading restore file: $e'),
+          backgroundColor: AppColors.rose,
+        ),
+      );
+    }
   }
 }

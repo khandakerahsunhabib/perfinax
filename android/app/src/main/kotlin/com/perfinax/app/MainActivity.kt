@@ -1,4 +1,4 @@
-package com.example.perfinax
+package com.perfinax.app
 
 import io.flutter.embedding.android.FlutterActivity
 

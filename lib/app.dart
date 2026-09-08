@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
-import 'views/main_screen.dart';
+import 'controllers/theme_controller.dart';
+import 'core/theme/app_theme.dart';
+import 'views/splash/splash_screen.dart';
 
-class PerfinaxApp extends StatelessWidget {
+class PerfinaxApp extends StatefulWidget {
   const PerfinaxApp({super.key});
 
   @override
+  State<PerfinaxApp> createState() => _PerfinaxAppState();
+}
+
+class _PerfinaxAppState extends State<PerfinaxApp> {
+  @override
+  void initState() {
+    super.initState();
+    ThemeController.instance.loadTheme();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PERFINAX',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF030A08),
-        cardColor: const Color(0xFF0A221C),
-        primaryColor: const Color(0xFF10B981),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF10B981),
-          surface: Color(0xFF0A221C),
-          secondary: Color(0xFF14B8A6),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF030A08),
-          elevation: 0,
-        ),
-      ),
-      home: const MainScreen(),
+    return ListenableBuilder(
+      listenable: ThemeController.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'PERFINAX',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeController.instance.themeMode,
+          darkTheme: AppTheme.darkTheme,
+          theme: AppTheme.lightTheme,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

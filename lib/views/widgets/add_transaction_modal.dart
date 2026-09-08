@@ -14,7 +14,7 @@ void showAddTransactionModal({
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF0A221C),
+    backgroundColor: Theme.of(context).cardColor,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (context) {
@@ -123,16 +123,16 @@ class _AddTransactionModalContentState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.add_circle_outline_rounded,
+                    const Icon(Icons.add_circle_outline_rounded,
                         color: Color(0xFF10B981), size: 22),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text('LOG TRANSACTION',
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             letterSpacing: 0.5)),
                   ],
                 ),
@@ -143,14 +143,14 @@ class _AddTransactionModalContentState
                 ),
               ],
             ),
-            const Divider(color: Color(0xFF061714)),
+            Divider(color: Theme.of(context).dividerColor),
             const SizedBox(height: 8),
 
             // Segmented Pill Tabs
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                  color: const Color(0xFF030A08),
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                       color: AppColors.emerald.withValues(alpha: 0.2))),
@@ -180,12 +180,19 @@ class _AddTransactionModalContentState
                       TextField(
                         controller: _amountController,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: '0.00',
+                          hintStyle: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.slate400
+                                  : const Color(0xFF64748B),
+                              fontSize: 13),
                           filled: true,
-                          fillColor: const Color(0xFF030A08),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none),
@@ -224,7 +231,7 @@ class _AddTransactionModalContentState
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(12)),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,8 +245,10 @@ class _AddTransactionModalContentState
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: _selectedCategory.isNotEmpty
-                                              ? Colors.white
-                                              : AppColors.slate500),
+                                              ? Theme.of(context).colorScheme.onSurface
+                                              : (Theme.of(context).brightness == Brightness.dark
+                                                  ? AppColors.slate500
+                                                  : const Color(0xFF64748B))),
                                       overflow: TextOverflow.ellipsis)),
                               const Icon(Icons.arrow_drop_down,
                                   size: 16, color: AppColors.slate400),
@@ -279,12 +288,14 @@ class _AddTransactionModalContentState
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(12)),
                           child: Text(
                               DateFormat('yyyy-MM-dd').format(_selectedDate),
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface)),
                         ),
                       ),
                     ],
@@ -330,7 +341,7 @@ class _AddTransactionModalContentState
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(12)),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -349,9 +360,10 @@ class _AddTransactionModalContentState
                                                   ? user.mfs
                                                   : 'Mobile')
                                               : 'Cash',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
-                                      fontWeight: FontWeight.bold),
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSurface),
                                   overflow: TextOverflow.ellipsis),
                               const Icon(Icons.arrow_drop_down,
                                   size: 16, color: AppColors.slate400),
@@ -374,11 +386,17 @@ class _AddTransactionModalContentState
             const SizedBox(height: 4),
             TextField(
               controller: _noteController,
-              style: const TextStyle(fontSize: 12),
+              style: TextStyle(
+                  fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Write comment...',
+                hintStyle: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.slate400
+                        : const Color(0xFF64748B),
+                    fontSize: 12),
                 filled: true,
-                fillColor: const Color(0xFF030A08),
+                fillColor: Theme.of(context).scaffoldBackgroundColor,
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none),
@@ -396,12 +414,14 @@ class _AddTransactionModalContentState
                   onChanged: (val) =>
                       setState(() => _isRecurring = val ?? false),
                 ),
-                const Expanded(
+                Expanded(
                     child: Text('Recurring Transaction (Auto-log next month)',
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.slate300))),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.slate300
+                                : const Color(0xFF475569)))),
               ],
             ),
             const SizedBox(height: 12),

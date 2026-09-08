@@ -72,7 +72,7 @@ class _AnimatedEmptyPieChartState extends State<AnimatedEmptyPieChart>
                         height: 60,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF030A08),
+                          color: Theme.of(context).scaffoldBackgroundColor,
                           border: Border.all(
                             color: const Color(0xFF10B981)
                                 .withValues(alpha: 0.4),

@@ -10,7 +10,7 @@ void showModalSelector({
 }) {
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF0A221C),
+    backgroundColor: Theme.of(context).cardColor,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (context) {
@@ -24,16 +24,16 @@ void showModalSelector({
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close, color: AppColors.slate400)),
               ],
             ),
-            const Divider(color: Color(0xFF061714)),
+            Divider(color: Theme.of(context).dividerColor),
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
@@ -50,7 +50,7 @@ void showModalSelector({
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF030A08),
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color: isSelected
@@ -64,11 +64,13 @@ void showModalSelector({
                             child: Text(
                               item['label']!,
                               style: TextStyle(
+                                  fontSize: 13,
                                   color: isSelected
                                       ? const Color(0xFF10B981)
-                                      : Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13),
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

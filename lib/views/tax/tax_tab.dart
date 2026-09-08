@@ -121,7 +121,7 @@ class _TaxTabState extends State<TaxTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: AppColors.emerald.withValues(alpha: 0.3))),
@@ -135,11 +135,11 @@ class _TaxTabState extends State<TaxTab> {
                         color: Color(0xFF10B981),
                         letterSpacing: 1)),
                 const SizedBox(height: 2),
-                const Text('Income TAX Calculator',
+                Text('Income TAX Calculator',
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 12),
 
                 Row(
@@ -150,7 +150,7 @@ class _TaxTabState extends State<TaxTab> {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(10)),
                           child: Text(_taxAY,
                               style: const TextStyle(
@@ -165,7 +165,7 @@ class _TaxTabState extends State<TaxTab> {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(10)),
                           child: Text(_taxCategoryLabel,
                               style: const TextStyle(
@@ -199,7 +199,7 @@ class _TaxTabState extends State<TaxTab> {
                             decoration: InputDecoration(
                                 hintText: '0.00',
                                 filled: true,
-                                fillColor: const Color(0xFF030A08),
+                                fillColor: Theme.of(context).scaffoldBackgroundColor,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none),
@@ -228,7 +228,7 @@ class _TaxTabState extends State<TaxTab> {
                             decoration: InputDecoration(
                                 hintText: '0.00',
                                 filled: true,
-                                fillColor: const Color(0xFF030A08),
+                                fillColor: Theme.of(context).scaffoldBackgroundColor,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none),
@@ -262,7 +262,7 @@ class _TaxTabState extends State<TaxTab> {
                             decoration: InputDecoration(
                                 hintText: 'DPS/Stocks',
                                 filled: true,
-                                fillColor: const Color(0xFF030A08),
+                                fillColor: Theme.of(context).scaffoldBackgroundColor,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none),
@@ -291,7 +291,7 @@ class _TaxTabState extends State<TaxTab> {
                             decoration: InputDecoration(
                                 hintText: 'AIT Paid',
                                 filled: true,
-                                fillColor: const Color(0xFF030A08),
+                                fillColor: Theme.of(context).scaffoldBackgroundColor,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none),
@@ -307,7 +307,7 @@ class _TaxTabState extends State<TaxTab> {
                 ElevatedButton(
                   onPressed: _autoPullTaxIncome,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF030A08),
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                       foregroundColor: const Color(0xFF10B981),
                       minimumSize: const Size(double.infinity, 36)),
                   child: const Text(
@@ -321,12 +321,12 @@ class _TaxTabState extends State<TaxTab> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                      color: const Color(0xFF030A08),
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     children: [
                       _buildTaxLineRow('Total Gross Income:',
-                          '৳${taxRes['gross']!.toStringAsFixed(2)}', Colors.white),
+                          '৳${taxRes['gross']!.toStringAsFixed(2)}', Theme.of(context).colorScheme.onSurface),
                       _buildTaxLineRow(
                           'Less: Salary Exemption (1/3rd or Max 4.5L):',
                           '-৳${taxRes['exemption']!.toStringAsFixed(2)}',
@@ -338,7 +338,7 @@ class _TaxTabState extends State<TaxTab> {
                       _buildTaxLineRow(
                           'Gross Calculated Tax:',
                           '৳${taxRes['grossTax']!.toStringAsFixed(2)}',
-                          Colors.white),
+                          Theme.of(context).colorScheme.onSurface),
                       _buildTaxLineRow(
                           'Less: Investment Tax Rebate:',
                           '-৳${taxRes['rebate']!.toStringAsFixed(2)}',
@@ -347,7 +347,7 @@ class _TaxTabState extends State<TaxTab> {
                           'Less: Advance AIT / TDS Paid:',
                           '-৳${taxRes['ait']!.toStringAsFixed(2)}',
                           const Color(0xFF10B981)),
-                      const Divider(color: Color(0xFF061714)),
+                      Divider(color: Theme.of(context).dividerColor),
                       _buildTaxLineRow(
                           'Final Payable Tax:',
                           '৳${taxRes['finalTax']!.toStringAsFixed(2)}',
@@ -366,6 +366,7 @@ class _TaxTabState extends State<TaxTab> {
 
   Widget _buildTaxLineRow(String label, String value, Color color,
       {bool isBold = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -376,7 +377,9 @@ class _TaxTabState extends State<TaxTab> {
               label,
               style: TextStyle(
                   fontSize: 10,
-                  color: isBold ? Colors.white : AppColors.slate300,
+                  color: isBold
+                      ? Theme.of(context).colorScheme.onSurface
+                      : (isDark ? AppColors.slate300 : const Color(0xFF334155)),
                   fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
               overflow: TextOverflow.ellipsis,
             ),

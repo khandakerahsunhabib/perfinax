@@ -62,6 +62,78 @@ class _CalendarTabState extends State<CalendarTab> {
         const SnackBar(content: Text('Reminder added successfully!')));
   }
 
+  void _confirmDeleteReminder(ReminderItem item) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: AppColors.rose400.withValues(alpha: 0.3)),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: AppColors.rose400, size: 22),
+              SizedBox(width: 8),
+              Text(
+                'Delete Reminder?',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Are you sure you want to delete '${item.title}'?\nThis action cannot be undone.",
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.4,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                side: const BorderSide(color: AppColors.slate500),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('CANCEL',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                widget.dataController.removeReminder(item.id);
+                widget.onDataChanged();
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Reminder deleted')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.rose,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('DELETE',
+                  style:
+                      TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final daysInMonth =
@@ -80,18 +152,18 @@ class _CalendarTabState extends State<CalendarTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: AppColors.emerald.withValues(alpha: 0.3))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('SPENDING HEATMAP & REMINDERS',
+                Text('SPENDING HEATMAP & REMINDERS',
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 4),
                 const Row(
                   children: [
@@ -168,7 +240,7 @@ class _CalendarTabState extends State<CalendarTab> {
                     final incTotal =
                         dayIncomes.fold(0.0, (s, t) => s + t.amount);
 
-                    Color bg = const Color(0xFF030A08);
+                    Color bg = Theme.of(context).scaffoldBackgroundColor;
                     if (expTotal > 0 && incTotal > 0) {
                       bg = const Color(0xFF064E3B);
                     } else if (expTotal > 0) {
@@ -231,7 +303,7 @@ class _CalendarTabState extends State<CalendarTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: AppColors.emerald.withValues(alpha: 0.3))),
@@ -254,7 +326,7 @@ class _CalendarTabState extends State<CalendarTab> {
                         decoration: InputDecoration(
                           hintText: 'Title (e.g. Rent)',
                           filled: true,
-                          fillColor: const Color(0xFF030A08),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide.none),
@@ -272,7 +344,7 @@ class _CalendarTabState extends State<CalendarTab> {
                         decoration: InputDecoration(
                           hintText: 'Amount',
                           filled: true,
-                          fillColor: const Color(0xFF030A08),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide.none),
@@ -298,7 +370,7 @@ class _CalendarTabState extends State<CalendarTab> {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(10)),
                           child: Text(
                               DateFormat('yyyy-MM-dd').format(_reminderDate),
@@ -327,6 +399,122 @@ class _CalendarTabState extends State<CalendarTab> {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+
+          // 3. UPCOMING REMINDERS RECORD CARD
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.emerald.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'UPCOMING REMINDERS RECORD',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (reminders.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Center(
+                      child: Text(
+                        'No upcoming reminders recorded.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.slate400
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: reminders.length,
+                    separatorBuilder: (ctx, idx) => const SizedBox(height: 8),
+                    itemBuilder: (ctx, idx) {
+                      final item = reminders[idx];
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.emerald.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Due: ${DateFormat('yyyy-MM-dd').format(item.date)}',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      color: AppColors.slate400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                if (item.amount > 0) ...[
+                                  Text(
+                                    '৳${item.amount.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                      color: AppColors.rose400,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(Icons.close_rounded,
+                                      size: 16, color: AppColors.slate500),
+                                  onPressed: () => _confirmDeleteReminder(item),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

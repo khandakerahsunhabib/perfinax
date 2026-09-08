@@ -10,6 +10,7 @@ import 'tax/tax_tab.dart';
 import 'profile/profile_tab.dart';
 import 'widgets/combined_period_modal.dart';
 import 'widgets/add_transaction_modal.dart';
+import 'widgets/theme_selector_modal.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -125,13 +126,24 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings_outlined,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFF059669),
+              size: 22,
+            ),
+            tooltip: 'Theme Options',
+            onPressed: () => showThemeSelectorModal(context),
+          ),
           InkWell(
             onTap: _navigateToProfile,
             child: Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color: isProfileCreated
@@ -160,7 +172,7 @@ class _MainScreenState extends State<MainScreen> {
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isProfileCreated
-                              ? Colors.white
+                              ? Theme.of(context).colorScheme.onSurface
                               : const Color(0xFF10B981))),
                 ],
               ),
@@ -185,7 +197,7 @@ class _MainScreenState extends State<MainScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0A221C),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                             color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -195,10 +207,10 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           Text(
                               "${AppCategories.months[_selectedMonth]} $_selectedYear",
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white)),
+                                  color: Theme.of(context).colorScheme.onSurface)),
                           const Icon(Icons.arrow_drop_down,
                               size: 18, color: Color(0xFF10B981)),
                         ],
@@ -244,7 +256,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFF030A08),
+        color: Theme.of(context).cardColor,
         elevation: 10,
         shape: const CircularNotchedRectangle(),
         notchMargin: 6,

@@ -51,7 +51,7 @@ class AnalyticsTab extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  color: const Color(0xFF0A221C),
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                       color: AppColors.emerald.withValues(alpha: 0.3))),
@@ -77,10 +77,10 @@ class AnalyticsTab extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(user.name.isNotEmpty ? user.name : 'Tap to set up Profile',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.white)),
+                                color: Theme.of(context).colorScheme.onSurface)),
                         Text(
                             'Occupation: ${user.occupation.isNotEmpty ? user.occupation : "N/A"}',
                             style: const TextStyle(
@@ -117,7 +117,7 @@ class AnalyticsTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: AppColors.emerald.withValues(alpha: 0.3))),

@@ -12,7 +12,7 @@ void openCombinedPeriodModal({
 
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF0A221C),
+    backgroundColor: Theme.of(context).cardColor,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (context) {
@@ -27,11 +27,11 @@ void openCombinedPeriodModal({
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Select Period (Month & Year)',
+                Text('Select Period (Month & Year)',
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 12),
                 const Text('1. Select Year',
                     style: TextStyle(
@@ -51,9 +51,9 @@ void openCombinedPeriodModal({
                           label: Text(y.toString()),
                           selected: isSel,
                           selectedColor: const Color(0xFF10B981),
-                          backgroundColor: const Color(0xFF030A08),
+                          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                           labelStyle: TextStyle(
-                              color: isSel ? Colors.black : Colors.white,
+                              color: isSel ? Colors.black : Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.bold),
                           onSelected: (val) {
                             setModalState(() {
@@ -93,7 +93,7 @@ void openCombinedPeriodModal({
                           decoration: BoxDecoration(
                             color: isSel
                                 ? const Color(0xFF10B981)
-                                : const Color(0xFF030A08),
+                                : Theme.of(context).scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -101,7 +101,7 @@ void openCombinedPeriodModal({
                           child: Text(
                               AppCategories.months[idx].substring(0, 3),
                               style: TextStyle(
-                                  color: isSel ? Colors.black : Colors.white,
+                                  color: isSel ? Colors.black : Theme.of(context).colorScheme.onSurface,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12)),
                         ),

@@ -130,4 +130,55 @@ class DataController {
     reminders.removeWhere((r) => r.id == id);
     saveReminders();
   }
+
+  String exportBackupJson() {
+    final Map<String, dynamic> data = {
+      'version': 1,
+      'app': 'PERFINAX',
+      'exportedAt': DateTime.now().toIso8601String(),
+      'transactions': transactions.map((e) => e.toJson()).toList(),
+      'reminders': reminders.map((e) => e.toJson()).toList(),
+      'userProfile': userProfile.toJson(),
+    };
+    return const JsonEncoder.withIndent('  ').convert(data);
+  }
+
+  Future<bool> importBackupJson(String jsonString) async {
+    try {
+      final dynamic decoded = jsonDecode(jsonString.trim());
+      if (decoded is Map<String, dynamic>) {
+        if (decoded.containsKey('transactions') &&
+            decoded['transactions'] is List) {
+          final List txList = decoded['transactions'];
+          transactions =
+              txList.map((e) => TransactionItem.fromJson(e)).toList();
+        }
+
+        if (decoded.containsKey('reminders') &&
+            decoded['reminders'] is List) {
+          final List remList = decoded['reminders'];
+          reminders =
+              remList.map((e) => ReminderItem.fromJson(e)).toList();
+        }
+
+        if (decoded.containsKey('userProfile') &&
+            decoded['userProfile'] is Map) {
+          userProfile = UserProfile.fromJson(
+              Map<String, dynamic>.from(decoded['userProfile']));
+        }
+      } else if (decoded is List) {
+        // Fallback if raw list of transactions was provided
+        transactions =
+            decoded.map((e) => TransactionItem.fromJson(e)).toList();
+      }
+
+      await saveTransactions();
+      await saveReminders();
+      await saveUserProfile();
+      return true;
+    } catch (e) {
+      debugPrint('Error importing backup JSON: $e');
+      return false;
+    }
+  }
 }

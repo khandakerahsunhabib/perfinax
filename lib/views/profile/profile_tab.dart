@@ -137,12 +137,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF0A221C),
-                  const Color(0xFF064E3B).withValues(alpha: 0.6)
-                ],
-              ),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                   color: AppColors.emerald.withValues(alpha: 0.4)),
@@ -159,7 +154,7 @@ class ProfileTabState extends State<ProfileTab> {
                       color: Color(0xFF10B981), size: 28),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -167,9 +162,9 @@ class ProfileTabState extends State<ProfileTab> {
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                      SizedBox(height: 2),
-                      Text(
+                              color: Theme.of(context).colorScheme.onSurface)),
+                      const SizedBox(height: 2),
+                      const Text(
                           'Create your profile to unlock customized tax planning & financial statements.',
                           style: TextStyle(
                               fontSize: 10, color: AppColors.slate300)),
@@ -185,7 +180,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A221C),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                   color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -210,10 +205,10 @@ class ProfileTabState extends State<ProfileTab> {
                           ? CircleAvatar(
                               radius: 36,
                               backgroundImage: FileImage(File(user.avatarPath)))
-                          : const CircleAvatar(
+                          : CircleAvatar(
                               radius: 36,
-                              backgroundColor: Color(0xFF030A08),
-                              child: Icon(Icons.person,
+                              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                              child: const Icon(Icons.person,
                                   size: 40, color: Color(0xFF10B981))),
                       const SizedBox(height: 8),
                       TextButton.icon(
@@ -301,7 +296,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A221C),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                   color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -319,7 +314,7 @@ class ProfileTabState extends State<ProfileTab> {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF030A08),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               shape: BoxShape.circle,
                               border: Border.all(
                                   color: AppColors.emerald
@@ -334,10 +329,10 @@ class ProfileTabState extends State<ProfileTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(user.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.white)),
+                                  color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 2),
                           Text(
                               user.occupation.isNotEmpty
@@ -398,7 +393,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A221C),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                   color: AppColors.emerald.withValues(alpha: 0.2)),
@@ -428,7 +423,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A221C),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                   color: AppColors.emerald.withValues(alpha: 0.2)),
@@ -468,7 +463,7 @@ class ProfileTabState extends State<ProfileTab> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A221C),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           border:
               Border.all(color: AppColors.emerald.withValues(alpha: 0.3)),
@@ -501,10 +496,10 @@ class ProfileTabState extends State<ProfileTab> {
                     ? CircleAvatar(
                         radius: 28,
                         backgroundImage: FileImage(File(user.avatarPath)))
-                    : const CircleAvatar(
+                    : CircleAvatar(
                         radius: 28,
-                        backgroundColor: Color(0xFF030A08),
-                        child: Icon(Icons.person,
+                        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                        child: const Icon(Icons.person,
                             size: 32, color: Color(0xFF10B981))),
                 const SizedBox(width: 14),
                 ElevatedButton.icon(
@@ -524,8 +519,8 @@ class ProfileTabState extends State<ProfileTab> {
                       style:
                           TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF030A08),
-                      foregroundColor: Colors.white),
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      foregroundColor: Theme.of(context).colorScheme.onSurface),
                 ),
               ],
             ),
@@ -557,8 +552,11 @@ class ProfileTabState extends State<ProfileTab> {
                   child: OutlinedButton(
                     onPressed: () => setState(() => _isEditing = false),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.slate500),
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      side: BorderSide(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.slate500
+                              : const Color(0xFF94A3B8)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -616,14 +614,18 @@ class ProfileTabState extends State<ProfileTab> {
           TextField(
             controller: controller,
             keyboardType: keyboardType,
-            style: const TextStyle(fontSize: 12, color: Colors.white),
+            style: TextStyle(
+                fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle:
-                  const TextStyle(color: AppColors.slate500, fontSize: 11),
+              hintStyle: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.slate500
+                      : const Color(0xFF64748B),
+                  fontSize: 11),
               prefixIcon: Icon(icon, size: 16, color: AppColors.slate400),
               filled: true,
-              fillColor: const Color(0xFF030A08),
+              fillColor: Theme.of(context).scaffoldBackgroundColor,
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none),
@@ -646,7 +648,7 @@ class ProfileTabState extends State<ProfileTab> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF030A08),
+              color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 16, color: const Color(0xFF10B981)),
@@ -667,7 +669,11 @@ class ProfileTabState extends State<ProfileTab> {
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: hasVal ? Colors.white : AppColors.slate500),
+                      color: hasVal
+                          ? Theme.of(context).colorScheme.onSurface
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.slate500
+                              : const Color(0xFF64748B))),
                 ),
               ],
             ),
