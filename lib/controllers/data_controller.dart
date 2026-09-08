@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction_item.dart';
 import '../models/reminder_item.dart';
@@ -14,45 +15,76 @@ class DataController {
   static const String _userKey = 'pernance_user_profile';
 
   Future<void> loadStorageData() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    // Load Transactions
-    final txString = prefs.getString(_txKey);
-    if (txString != null) {
-      final List decoded = jsonDecode(txString);
-      transactions = decoded.map((e) => TransactionItem.fromJson(e)).toList();
-    }
+      // Load Transactions
+      try {
+        final txString = prefs.getString(_txKey);
+        if (txString != null) {
+          final List decoded = jsonDecode(txString);
+          transactions =
+              decoded.map((e) => TransactionItem.fromJson(e)).toList();
+        }
+      } catch (e) {
+        debugPrint('Error decoding transactions: $e');
+      }
 
-    // Load Reminders
-    final remString = prefs.getString(_reminderKey);
-    if (remString != null) {
-      final List decoded = jsonDecode(remString);
-      reminders = decoded.map((e) => ReminderItem.fromJson(e)).toList();
-    }
+      // Load Reminders
+      try {
+        final remString = prefs.getString(_reminderKey);
+        if (remString != null) {
+          final List decoded = jsonDecode(remString);
+          reminders = decoded.map((e) => ReminderItem.fromJson(e)).toList();
+        }
+      } catch (e) {
+        debugPrint('Error decoding reminders: $e');
+      }
 
-    // Load User Profile
-    final userString = prefs.getString(_userKey);
-    if (userString != null) {
-      userProfile = UserProfile.fromJson(jsonDecode(userString));
+      // Load User Profile
+      try {
+        final userString = prefs.getString(_userKey);
+        if (userString != null) {
+          userProfile = UserProfile.fromJson(jsonDecode(userString));
+        }
+      } catch (e) {
+        debugPrint('Error decoding user profile: $e');
+      }
+    } catch (e) {
+      debugPrint('Error accessing SharedPreferences: $e');
     }
   }
 
   Future<void> saveTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(transactions.map((e) => e.toJson()).toList());
-    await prefs.setString(_txKey, encoded);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encoded =
+          jsonEncode(transactions.map((e) => e.toJson()).toList());
+      await prefs.setString(_txKey, encoded);
+    } catch (e) {
+      debugPrint('Error saving transactions: $e');
+    }
   }
 
   Future<void> saveReminders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(reminders.map((e) => e.toJson()).toList());
-    await prefs.setString(_reminderKey, encoded);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encoded =
+          jsonEncode(reminders.map((e) => e.toJson()).toList());
+      await prefs.setString(_reminderKey, encoded);
+    } catch (e) {
+      debugPrint('Error saving reminders: $e');
+    }
   }
 
   Future<void> saveUserProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(userProfile.toJson());
-    await prefs.setString(_userKey, encoded);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encoded = jsonEncode(userProfile.toJson());
+      await prefs.setString(_userKey, encoded);
+    } catch (e) {
+      debugPrint('Error saving user profile: $e');
+    }
   }
 
   void addTransaction(TransactionItem tx) {
@@ -65,7 +97,8 @@ class DataController {
         nextYear++;
       }
       final daysInNextMonth = DateTime(nextYear, nextMonth + 1, 0).day;
-      final targetDay = tx.date.day > daysInNextMonth ? daysInNextMonth : tx.date.day;
+      final targetDay =
+          tx.date.day > daysInNextMonth ? daysInNextMonth : tx.date.day;
       final nextDate = DateTime(nextYear, nextMonth, targetDay);
 
       final nextTx = TransactionItem(
