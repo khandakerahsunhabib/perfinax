@@ -5,6 +5,7 @@ import '../../core/constants/app_categories.dart';
 import '../../controllers/data_controller.dart';
 import '../widgets/modal_selector.dart';
 import '../widgets/add_transaction_modal.dart';
+import '../widgets/animated_empty_transactions.dart';
 
 class DashboardTab extends StatefulWidget {
   final DataController dataController;
@@ -309,12 +310,9 @@ class _DashboardTabState extends State<DashboardTab> {
           const SizedBox(height: 8),
 
           filteredList.isEmpty
-              ? const Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('No matching transactions in this month.',
-                          style: TextStyle(
-                              color: AppColors.slate500, fontSize: 11))))
+              ? AnimatedEmptyTransactions(
+                  onAddTap: _openAddTransactionModal,
+                )
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
