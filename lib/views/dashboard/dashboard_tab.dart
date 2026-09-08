@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_categories.dart';
 import '../../controllers/data_controller.dart';
+import '../../models/transaction_item.dart';
 import '../widgets/modal_selector.dart';
 import '../widgets/add_transaction_modal.dart';
 import '../widgets/animated_empty_transactions.dart';
@@ -40,6 +41,78 @@ class _DashboardTabState extends State<DashboardTab> {
       onTransactionAdded: () {
         widget.onDataChanged();
         setState(() {});
+      },
+    );
+  }
+
+  void _confirmDeleteTransaction(TransactionItem item) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF0A221C),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: AppColors.rose400.withValues(alpha: 0.3)),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: AppColors.rose400, size: 22),
+              SizedBox(width: 8),
+              Text(
+                'Delete Transaction?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Are you sure you want to delete this ${item.type.toUpperCase()} entry for '${item.category}' (৳${item.amount.toStringAsFixed(2)})?\nThis action cannot be undone.",
+            style: const TextStyle(
+              color: AppColors.slate300,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: AppColors.slate500),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('CANCEL',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                widget.dataController.removeTransaction(item.id);
+                widget.onDataChanged();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Transaction deleted')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.rose,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('DELETE',
+                  style:
+                      TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        );
       },
     );
   }
@@ -396,11 +469,8 @@ class _DashboardTabState extends State<DashboardTab> {
                                 padding: const EdgeInsets.only(left: 6),
                                 icon: const Icon(Icons.close,
                                     size: 14, color: AppColors.slate500),
-                                onPressed: () {
-                                  widget.dataController
-                                      .removeTransaction(item.id);
-                                  widget.onDataChanged();
-                                },
+                                onPressed: () =>
+                                    _confirmDeleteTransaction(item),
                               ),
                             ],
                           ),
