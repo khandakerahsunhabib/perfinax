@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/constants/app_colors.dart';
 import '../../controllers/data_controller.dart';
+import '../widgets/animated_empty_pie_chart.dart';
 
 class AnalyticsTab extends StatelessWidget {
   final DataController dataController;
@@ -132,11 +133,7 @@ class AnalyticsTab extends StatelessWidget {
                 SizedBox(
                   height: 200,
                   child: catMap.isEmpty
-                      ? const Center(
-                          child: Text(
-                              'No expenses logged for this month.',
-                              style: TextStyle(
-                                  color: AppColors.slate500, fontSize: 11)))
+                      ? const AnimatedEmptyPieChart()
                       : PieChart(
                           PieChartData(
                             sectionsSpace: 2,
