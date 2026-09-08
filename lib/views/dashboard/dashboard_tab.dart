@@ -197,288 +197,302 @@ class _DashboardTabState extends State<DashboardTab> {
     final String mfsBankLabel =
         user.mfs.isNotEmpty ? user.mfs : 'Mobile Bank';
 
-    return SingleChildScrollView(
-      controller: widget.homeScrollController,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Remaining Balance Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0A221C),
-              borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: AppColors.emerald.withValues(alpha: 0.3)),
-              boxShadow: [
-                BoxShadow(
-                    color: AppColors.emerald.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    spreadRadius: 2)
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('REMAINING BALANCE (SELECTED MONTH)',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF34D399),
-                        letterSpacing: 1)),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CustomScrollView(
+        controller: widget.homeScrollController,
+        slivers: [
+          // 1. REMAINING BALANCE CARD
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0A221C),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: AppColors.emerald.withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColors.emerald.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        spreadRadius: 2)
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('৳${remainingBalance.toStringAsFixed(2)}',
+                    const Text('REMAINING BALANCE (SELECTED MONTH)',
                         style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: remainingBalance < 0
-                                ? AppColors.rose400
-                                : Colors.white)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                          color: const Color(0xFF064E3B),
-                          borderRadius: BorderRadius.circular(12)),
-                      child: const Text('Month Isolated',
-                          style: TextStyle(
-                              color: Color(0xFFA7F3D0),
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 2.5,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  children: [
-                    _buildBalanceMiniCard(
-                        pBankLabel, primary, AppColors.sky400),
-                    _buildBalanceMiniCard(
-                        sBankLabel, secondary, AppColors.teal300),
-                    _buildBalanceMiniCard(
-                        mfsBankLabel, mfs, AppColors.pink400),
-                    _buildBalanceMiniCard(
-                        'Cash Hand', cash, const Color(0xFF10B981)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF030A08),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Invested / Saved',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.slate300)),
-                      Text('৳${savings.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.purple400)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Transactions List Header & Quick Add Button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('LATEST TRANSACTIONS',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.slate300,
-                      letterSpacing: 0.5)),
-              Row(
-                children: [
-                  InkWell(
-                    onTap: _openAddTransactionModal,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                          color: const Color(0xFF064E3B),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFF10B981))),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.add_rounded,
-                              size: 14, color: Color(0xFF10B981)),
-                          SizedBox(width: 4),
-                          Text('Log Transaction',
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF34D399),
+                            letterSpacing: 1)),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('৳${remainingBalance.toStringAsFixed(2)}',
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: remainingBalance < 0
+                                    ? AppColors.rose400
+                                    : Colors.white)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: const Color(0xFF064E3B),
+                              borderRadius: BorderRadius.circular(12)),
+                          child: const Text('Month Isolated',
                               style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF10B981),
+                                  color: Color(0xFFA7F3D0),
+                                  fontSize: 9,
                                   fontWeight: FontWeight.bold)),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  InkWell(
-                    onTap: () {
-                      final allCats = [
-                        'ALL',
-                        ...AppCategories.categories['expense']!,
-                        ...AppCategories.categories['income']!,
-                        ...AppCategories.categories['saving']!,
-                        ...AppCategories.categories['transfer']!
-                      ].map((e) => {'label': e, 'value': e}).toList();
-                      showModalSelector(
-                          context: context,
-                          title: 'Filter Category',
-                          options: allCats,
-                          currentValue: _txCatFilter,
-                          onSelect: (val) =>
-                              setState(() => _txCatFilter = val));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                          color: const Color(0xFF0A221C),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Text(_txCatFilter,
-                          style: const TextStyle(
-                              fontSize: 10,
-                              color: Color(0xFF10B981),
-                              fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: 2.5,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      children: [
+                        _buildBalanceMiniCard(
+                            pBankLabel, primary, AppColors.sky400),
+                        _buildBalanceMiniCard(
+                            sBankLabel, secondary, AppColors.teal300),
+                        _buildBalanceMiniCard(
+                            mfsBankLabel, mfs, AppColors.pink400),
+                        _buildBalanceMiniCard(
+                            'Cash Hand', cash, const Color(0xFF10B981)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    icon: Icon(
-                        _sortAscending
-                            ? Icons.arrow_upward_rounded
-                            : Icons.arrow_downward_rounded,
-                        size: 16,
-                        color: const Color(0xFF10B981)),
-                    onPressed: () =>
-                        setState(() => _sortAscending = !_sortAscending),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          filteredList.isEmpty
-              ? AnimatedEmptyTransactions(
-                  onAddTap: _openAddTransactionModal,
-                )
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredList.length,
-                  itemBuilder: (context, idx) {
-                    final item = filteredList[idx];
-                    final isInc = item.type == 'income' ||
-                        item.category == 'Cash Received';
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
+                    const SizedBox(height: 8),
+                    Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                          color: const Color(0xFF0A221C),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: AppColors.emerald
-                                  .withValues(alpha: 0.2))),
+                          color: const Color(0xFF030A08),
+                          borderRadius: BorderRadius.circular(12)),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        item.category,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12),
-                                        overflow: TextOverflow.ellipsis,
+                          const Text('Invested / Saved',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.slate300)),
+                          Text('৳${savings.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.purple400)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 2. TRANSACTIONS LIST HEADER
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('LATEST TRANSACTIONS',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.slate300,
+                          letterSpacing: 0.5)),
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: _openAddTransactionModal,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: const Color(0xFF064E3B),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: const Color(0xFF10B981))),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.add_rounded,
+                                  size: 14, color: Color(0xFF10B981)),
+                              SizedBox(width: 4),
+                              Text('Log Transaction',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF10B981),
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: () {
+                          final allCats = [
+                            'ALL',
+                            ...AppCategories.categories['expense']!,
+                            ...AppCategories.categories['income']!,
+                            ...AppCategories.categories['saving']!,
+                            ...AppCategories.categories['transfer']!
+                          ].map((e) => {'label': e, 'value': e}).toList();
+                          showModalSelector(
+                              context: context,
+                              title: 'Filter Category',
+                              options: allCats,
+                              currentValue: _txCatFilter,
+                              onSelect: (val) =>
+                                  setState(() => _txCatFilter = val));
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: const Color(0xFF0A221C),
+                              borderRadius: BorderRadius.circular(8)),
+                          child: Text(_txCatFilter,
+                              style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        icon: Icon(
+                            _sortAscending
+                                ? Icons.arrow_upward_rounded
+                                : Icons.arrow_downward_rounded,
+                            size: 16,
+                            color: const Color(0xFF10B981)),
+                        onPressed: () =>
+                            setState(() => _sortAscending = !_sortAscending),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. TRANSACTIONS LIST / ANIMATED EMPTY STATE
+          filteredList.isEmpty
+              ? SliverToBoxAdapter(
+                  child: AnimatedEmptyTransactions(
+                    onAddTap: _openAddTransactionModal,
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, idx) {
+                      final item = filteredList[idx];
+                      final isInc = item.type == 'income' ||
+                          item.category == 'Cash Received';
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                            color: const Color(0xFF0A221C),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: AppColors.emerald
+                                    .withValues(alpha: 0.2))),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          item.category,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 1),
-                                      decoration: BoxDecoration(
-                                          color: isInc
-                                              ? AppColors.emerald
-                                                  .withValues(alpha: 0.2)
-                                              : AppColors.rose
-                                                  .withValues(alpha: 0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(4)),
-                                      child: Text(item.type.toUpperCase(),
-                                          style: TextStyle(
-                                              color: isInc
-                                                  ? const Color(0xFF10B981)
-                                                  : AppColors.rose400,
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.bold)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 1),
+                                        decoration: BoxDecoration(
+                                            color: isInc
+                                                ? AppColors.emerald
+                                                    .withValues(alpha: 0.2)
+                                                : AppColors.rose
+                                                    .withValues(alpha: 0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(4)),
+                                        child: Text(item.type.toUpperCase(),
+                                            style: TextStyle(
+                                                color: isInc
+                                                    ? const Color(0xFF10B981)
+                                                    : AppColors.rose400,
+                                                fontSize: 8,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "${DateFormat('yyyy-MM-dd').format(item.date)} • ${item.account.toUpperCase()} ${item.note.isNotEmpty ? '• ${item.note}' : ''}",
+                                    style: const TextStyle(
+                                        fontSize: 9, color: AppColors.slate400),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              children: [
                                 Text(
-                                  "${DateFormat('yyyy-MM-dd').format(item.date)} • ${item.account.toUpperCase()} ${item.note.isNotEmpty ? '• ${item.note}' : ''}",
-                                  style: const TextStyle(
-                                      fontSize: 9, color: AppColors.slate400),
-                                  overflow: TextOverflow.ellipsis,
+                                    "${isInc ? '+' : '-'}৳${item.amount.toStringAsFixed(2)}",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 12,
+                                        color: isInc
+                                            ? const Color(0xFF10B981)
+                                            : AppColors.rose400)),
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.only(left: 6),
+                                  icon: const Icon(Icons.close,
+                                      size: 14, color: AppColors.slate500),
+                                  onPressed: () =>
+                                      _confirmDeleteTransaction(item),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Row(
-                            children: [
-                              Text(
-                                  "${isInc ? '+' : '-'}৳${item.amount.toStringAsFixed(2)}",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12,
-                                      color: isInc
-                                          ? const Color(0xFF10B981)
-                                          : AppColors.rose400)),
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.only(left: 6),
-                                icon: const Icon(Icons.close,
-                                    size: 14, color: AppColors.slate500),
-                                onPressed: () =>
-                                    _confirmDeleteTransaction(item),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                          ],
+                        ),
+                      );
+                    },
+                    childCount: filteredList.length,
+                  ),
                 ),
+
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 16),
+          ),
         ],
       ),
     );
