@@ -8,12 +8,14 @@ class AnalyticsTab extends StatelessWidget {
   final DataController dataController;
   final int selectedYear;
   final int selectedMonth;
+  final VoidCallback? onNavigateToProfile;
 
   const AnalyticsTab({
     super.key,
     required this.dataController,
     required this.selectedYear,
     required this.selectedMonth,
+    this.onNavigateToProfile,
   });
 
   @override
@@ -43,56 +45,69 @@ class AnalyticsTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // User Statement Header Profile Banner
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: const Color(0xFF0A221C),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: AppColors.emerald.withValues(alpha: 0.3))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('FINANCIAL STATEMENT PROFILE',
-                          style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                              letterSpacing: 1)),
-                      const SizedBox(height: 2),
-                      Text(user.name.isNotEmpty ? user.name : 'Guest User',
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white)),
-                      Text(
-                          'Occupation: ${user.occupation.isNotEmpty ? user.occupation : "N/A"}',
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.slate300)),
-                      Text(
-                          'Phone: ${user.phone.isNotEmpty ? user.phone : "N/A"} • Address: ${user.address.isNotEmpty ? user.address : "N/A"}',
-                          style: const TextStyle(
-                              fontSize: 10, color: AppColors.slate400)),
-                      const Divider(color: Color(0xFF061714)),
-                      Text(
-                          'Primary: $pBank | Sec: $sBank | Mobile: $mBank',
-                          style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF34D399))),
-                    ],
+          InkWell(
+            onTap: onNavigateToProfile,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF0A221C),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: AppColors.emerald.withValues(alpha: 0.3))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('FINANCIAL STATEMENT PROFILE',
+                                style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF10B981),
+                                    letterSpacing: 1)),
+                            Icon(Icons.chevron_right_rounded,
+                                size: 16, color: Color(0xFF10B981)),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(user.name.isNotEmpty ? user.name : 'Tap to set up Profile',
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white)),
+                        Text(
+                            'Occupation: ${user.occupation.isNotEmpty ? user.occupation : "N/A"}',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.slate300)),
+                        Text(
+                            'Phone: ${user.phone.isNotEmpty ? user.phone : "N/A"} • Address: ${user.address.isNotEmpty ? user.address : "N/A"}',
+                            style: const TextStyle(
+                                fontSize: 10, color: AppColors.slate400)),
+                        const Divider(color: Color(0xFF061714)),
+                        Text(
+                            'Primary: $pBank | Sec: $sBank | Mobile: $mBank',
+                            style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF34D399))),
+                      ],
+                    ),
                   ),
-                ),
-                if (user.avatarPath.isNotEmpty &&
-                    File(user.avatarPath).existsSync())
-                  CircleAvatar(
-                      radius: 28,
-                      backgroundImage: FileImage(File(user.avatarPath)))
-              ],
+                  if (user.avatarPath.isNotEmpty &&
+                      File(user.avatarPath).existsSync())
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: CircleAvatar(
+                          radius: 28,
+                          backgroundImage: FileImage(File(user.avatarPath))),
+                    )
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),

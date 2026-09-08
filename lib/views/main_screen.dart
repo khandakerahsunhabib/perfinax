@@ -21,6 +21,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final ScrollController _homeScrollController = ScrollController();
   final GlobalKey _inputFormKey = GlobalKey();
+  final GlobalKey<ProfileTabState> _profileTabKey = GlobalKey<ProfileTabState>();
 
   final DataController _dataController = DataController();
 
@@ -60,6 +61,13 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _navigateToProfile() {
+    setState(() {
+      _currentIndex = 4;
+    });
+    _profileTabKey.currentState?.showViewMode();
+  }
+
   void _openPeriodModal() {
     openCombinedPeriodModal(
       context: context,
@@ -77,6 +85,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _dataController.userProfile;
+    final bool isProfileCreated = user.name.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -119,7 +128,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
         actions: [
           InkWell(
-            onTap: () => setState(() => _currentIndex = 4),
+            onTap: _navigateToProfile,
             child: Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -127,7 +136,9 @@ class _MainScreenState extends State<MainScreen> {
                 color: const Color(0xFF0A221C),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: AppColors.emerald.withValues(alpha: 0.3)),
+                    color: isProfileCreated
+                        ? AppColors.emerald.withValues(alpha: 0.3)
+                        : const Color(0xFF10B981)),
               ),
               child: Row(
                 children: [
@@ -136,17 +147,23 @@ class _MainScreenState extends State<MainScreen> {
                       ? CircleAvatar(
                           radius: 10,
                           backgroundImage: FileImage(File(user.avatarPath)))
-                      : const Icon(Icons.person,
-                          size: 16, color: Color(0xFF10B981)),
+                      : Icon(
+                          isProfileCreated
+                              ? Icons.person
+                              : Icons.person_add_alt_1_rounded,
+                          size: 16,
+                          color: const Color(0xFF10B981)),
                   const SizedBox(width: 6),
                   Text(
-                      user.name.isNotEmpty
+                      isProfileCreated
                           ? user.name.split(' ')[0]
-                          : 'Profile',
-                      style: const TextStyle(
+                          : 'Create Profile',
+                      style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                          color: isProfileCreated
+                              ? Colors.white
+                              : const Color(0xFF10B981))),
                 ],
               ),
             ),
@@ -217,11 +234,13 @@ class _MainScreenState extends State<MainScreen> {
             dataController: _dataController,
             selectedYear: _selectedYear,
             selectedMonth: _selectedMonth,
+            onNavigateToProfile: _navigateToProfile,
           ),
           TaxTab(
             dataController: _dataController,
           ),
           ProfileTab(
+            key: _profileTabKey,
             dataController: _dataController,
             onDataChanged: () => setState(() {}),
           ),
@@ -241,7 +260,12 @@ class _MainScreenState extends State<MainScreen> {
               _buildNavItem(1, Icons.calendar_month_rounded, 'Calendar'),
               const SizedBox(width: 40), // Space for centered Floating Button
               _buildNavItem(2, Icons.analytics_rounded, 'Analytics'),
-              _buildNavItem(3, Icons.calculate_rounded, 'Income TAX'),
+              _buildNavItem(
+                  3,
+                  isProfileCreated
+                      ? Icons.calculate_rounded
+                      : Icons.person_rounded,
+                  isProfileCreated ? 'Income TAX' : 'Profile'),
             ],
           ),
         ),
