@@ -9,6 +9,7 @@ import 'analytics/analytics_tab.dart';
 import 'tax/tax_tab.dart';
 import 'profile/profile_tab.dart';
 import 'widgets/combined_period_modal.dart';
+import 'widgets/add_transaction_modal.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -20,7 +21,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final ScrollController _homeScrollController = ScrollController();
-  final GlobalKey _inputFormKey = GlobalKey();
   final GlobalKey<ProfileTabState> _profileTabKey = GlobalKey<ProfileTabState>();
 
   final DataController _dataController = DataController();
@@ -49,16 +49,14 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _goToHomeAndScroll() {
-    setState(() {
-      _currentIndex = 0;
-    });
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_inputFormKey.currentContext != null) {
-        Scrollable.ensureVisible(_inputFormKey.currentContext!,
-            duration: const Duration(milliseconds: 500));
-      }
-    });
+  void _openAddTransactionModal() {
+    showAddTransactionModal(
+      context: context,
+      dataController: _dataController,
+      onTransactionAdded: () {
+        setState(() {});
+      },
+    );
   }
 
   void _navigateToProfile() {
@@ -221,7 +219,6 @@ class _MainScreenState extends State<MainScreen> {
             selectedYear: _selectedYear,
             selectedMonth: _selectedMonth,
             homeScrollController: _homeScrollController,
-            inputFormKey: _inputFormKey,
             onDataChanged: () => setState(() {}),
           ),
           CalendarTab(
@@ -271,7 +268,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _goToHomeAndScroll,
+        onPressed: _openAddTransactionModal,
         backgroundColor: const Color(0xFF10B981),
         shape: const CircleBorder(),
         elevation: 6,
