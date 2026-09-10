@@ -12,6 +12,7 @@ import '../../models/transaction_item.dart';
 import '../widgets/modal_selector.dart';
 import '../widgets/add_transaction_modal.dart';
 import '../widgets/animated_empty_transactions.dart';
+import '../widgets/app_toast.dart';
 
 class DashboardTab extends StatefulWidget {
   final DataController dataController;
@@ -45,6 +46,18 @@ class _DashboardTabState extends State<DashboardTab> {
     showAddTransactionModal(
       context: context,
       dataController: widget.dataController,
+      onTransactionAdded: () {
+        widget.onDataChanged();
+        setState(() {});
+      },
+    );
+  }
+
+  void _openEditTransactionModal(TransactionItem item) {
+    showAddTransactionModal(
+      context: context,
+      dataController: widget.dataController,
+      transactionToEdit: item,
       onTransactionAdded: () {
         widget.onDataChanged();
         setState(() {});
@@ -103,8 +116,10 @@ class _DashboardTabState extends State<DashboardTab> {
                 Navigator.pop(ctx);
                 widget.dataController.removeTransaction(item.id);
                 widget.onDataChanged();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Transaction deleted')),
+                AppToast.show(
+                  context,
+                  message: 'Transaction deleted',
+                  type: ToastType.delete,
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -422,50 +437,53 @@ class _DashboardTabState extends State<DashboardTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          item.category,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12),
-                                          overflow: TextOverflow.ellipsis,
+                              child: InkWell(
+                                onTap: () => _openEditTransactionModal(item),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            item.category,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 1),
-                                        decoration: BoxDecoration(
-                                            color: isInc
-                                                ? AppColors.emerald
-                                                    .withValues(alpha: 0.2)
-                                                : AppColors.rose
-                                                    .withValues(alpha: 0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(4)),
-                                        child: Text(item.type.toUpperCase(),
-                                            style: TextStyle(
-                                                color: isInc
-                                                    ? const Color(0xFF10B981)
-                                                    : AppColors.rose400,
-                                                fontSize: 8,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    "${DateFormat('yyyy-MM-dd').format(item.date)} • ${item.account.toUpperCase()} ${item.note.isNotEmpty ? '• ${item.note}' : ''}",
-                                    style: const TextStyle(
-                                        fontSize: 9, color: AppColors.slate400),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 1),
+                                          decoration: BoxDecoration(
+                                              color: isInc
+                                                  ? AppColors.emerald
+                                                      .withValues(alpha: 0.2)
+                                                  : AppColors.rose
+                                                      .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(4)),
+                                          child: Text(item.type.toUpperCase(),
+                                              style: TextStyle(
+                                                  color: isInc
+                                                      ? const Color(0xFF10B981)
+                                                      : AppColors.rose400,
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      "${DateFormat('yyyy-MM-dd').format(item.date)} • ${item.account.toUpperCase()} ${item.note.isNotEmpty ? '• ${item.note}' : ''}",
+                                      style: const TextStyle(
+                                          fontSize: 9, color: AppColors.slate400),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -481,9 +499,19 @@ class _DashboardTabState extends State<DashboardTab> {
                                             : AppColors.rose400)),
                                 IconButton(
                                   constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.only(left: 6),
+                                  padding: const EdgeInsets.only(left: 4),
+                                  icon: const Icon(Icons.edit_outlined,
+                                      size: 14, color: AppColors.slate400),
+                                  tooltip: 'Edit Transaction',
+                                  onPressed: () =>
+                                      _openEditTransactionModal(item),
+                                ),
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.only(left: 4),
                                   icon: const Icon(Icons.close,
                                       size: 14, color: AppColors.slate500),
+                                  tooltip: 'Delete Transaction',
                                   onPressed: () =>
                                       _confirmDeleteTransaction(item),
                                 ),
@@ -920,11 +948,10 @@ class _DashboardTabState extends State<DashboardTab> {
               OutlinedButton.icon(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: jsonString));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Backup JSON copied to Clipboard!'),
-                      backgroundColor: Color(0xFF10B981),
-                    ),
+                  AppToast.show(
+                    context,
+                    message: 'Backup JSON copied to Clipboard!',
+                    type: ToastType.success,
                   );
                 },
                 icon: const Icon(Icons.copy_rounded, size: 14),
@@ -956,11 +983,10 @@ class _DashboardTabState extends State<DashboardTab> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error downloading backup file: $e'),
-          backgroundColor: AppColors.rose,
-        ),
+      AppToast.show(
+        context,
+        message: 'Error downloading backup file: $e',
+        type: ToastType.error,
       );
     }
   }
@@ -995,11 +1021,10 @@ class _DashboardTabState extends State<DashboardTab> {
 
       if (jsonContent == null || jsonContent.trim().isEmpty) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Selected JSON file is empty or unreadable.'),
-            backgroundColor: AppColors.rose,
-          ),
+        AppToast.show(
+          context,
+          message: 'Selected JSON file is empty or unreadable.',
+          type: ToastType.error,
         );
         return;
       }
@@ -1011,29 +1036,24 @@ class _DashboardTabState extends State<DashboardTab> {
       if (success) {
         widget.onDataChanged();
         setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Data restored successfully from "${pickedFile.name}"!'),
-            backgroundColor: const Color(0xFF10B981),
-          ),
+        AppToast.show(
+          context,
+          message: 'Data restored successfully from "${pickedFile.name}"!',
+          type: ToastType.success,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Failed to restore data. Invalid PERFINAX JSON file format.'),
-            backgroundColor: AppColors.rose,
-          ),
+        AppToast.show(
+          context,
+          message: 'Failed to restore data. Invalid PERFINAX JSON file format.',
+          type: ToastType.error,
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error uploading restore file: $e'),
-          backgroundColor: AppColors.rose,
-        ),
+      AppToast.show(
+        context,
+        message: 'Error uploading restore file: $e',
+        type: ToastType.error,
       );
     }
   }

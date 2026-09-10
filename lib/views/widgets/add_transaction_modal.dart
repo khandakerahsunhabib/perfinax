@@ -5,11 +5,13 @@ import '../../core/constants/app_categories.dart';
 import '../../controllers/data_controller.dart';
 import '../../models/transaction_item.dart';
 import 'modal_selector.dart';
+import 'app_toast.dart';
 
 void showAddTransactionModal({
   required BuildContext context,
   required DataController dataController,
   required VoidCallback onTransactionAdded,
+  TransactionItem? transactionToEdit,
 }) {
   showModalBottomSheet(
     context: context,
@@ -25,6 +27,7 @@ void showAddTransactionModal({
         child: AddTransactionModalContent(
           dataController: dataController,
           onTransactionAdded: onTransactionAdded,
+          transactionToEdit: transactionToEdit,
         ),
       );
     },
@@ -34,11 +37,13 @@ void showAddTransactionModal({
 class AddTransactionModalContent extends StatefulWidget {
   final DataController dataController;
   final VoidCallback onTransactionAdded;
+  final TransactionItem? transactionToEdit;
 
   const AddTransactionModalContent({
     super.key,
     required this.dataController,
     required this.onTransactionAdded,
+    this.transactionToEdit,
   });
 
   @override
@@ -55,6 +60,23 @@ class _AddTransactionModalContentState
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   bool _isRecurring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transactionToEdit != null) {
+      final tx = widget.transactionToEdit!;
+      _formType = tx.type;
+      _selectedCategory = tx.category;
+      _selectedAccount = tx.account;
+      _selectedDate = tx.date;
+      _amountController.text = tx.amount > 0
+          ? (tx.amount % 1 == 0 ? tx.amount.toInt().toString() : tx.amount.toString())
+          : '';
+      _noteController.text = tx.note;
+      _isRecurring = tx.recurring;
+    }
+  }
 
   @override
   void dispose() {
@@ -77,35 +99,68 @@ class _AddTransactionModalContentState
   void _submitTransaction() {
     if (_amountController.text.isEmpty ||
         double.tryParse(_amountController.text) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid amount')));
+      AppToast.show(
+        context,
+        message: 'Please enter a valid amount',
+        type: ToastType.error,
+      );
       return;
     }
     if (_selectedCategory.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a category')));
+      AppToast.show(
+        context,
+        message: 'Please select a category',
+        type: ToastType.error,
+      );
       return;
     }
 
     final double amount = double.parse(_amountController.text);
-    final tx = TransactionItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      type: _formType,
-      amount: amount,
-      category: _selectedCategory,
-      date: _selectedDate,
-      account: _selectedAccount,
-      note: _noteController.text.trim(),
-      recurring: _isRecurring,
-    );
+    if (widget.transactionToEdit != null) {
+      final updated = TransactionItem(
+        id: widget.transactionToEdit!.id,
+        type: _formType,
+        amount: amount,
+        category: _selectedCategory,
+        date: _selectedDate,
+        account: _selectedAccount,
+        note: _noteController.text.trim(),
+        recurring: _isRecurring,
+      );
 
-    widget.dataController.addTransaction(tx);
-    widget.onTransactionAdded();
+      widget.dataController.updateTransaction(updated);
+      widget.onTransactionAdded();
 
-    Navigator.pop(context);
+      Navigator.pop(context);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction recorded successfully!')));
+      AppToast.show(
+        context,
+        message: 'Transaction updated successfully!',
+        type: ToastType.success,
+      );
+    } else {
+      final tx = TransactionItem(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: _formType,
+        amount: amount,
+        category: _selectedCategory,
+        date: _selectedDate,
+        account: _selectedAccount,
+        note: _noteController.text.trim(),
+        recurring: _isRecurring,
+      );
+
+      widget.dataController.addTransaction(tx);
+      widget.onTransactionAdded();
+
+      Navigator.pop(context);
+
+      AppToast.show(
+        context,
+        message: 'Transaction recorded successfully!',
+        type: ToastType.success,
+      );
+    }
   }
 
   @override
@@ -125,10 +180,17 @@ class _AddTransactionModalContentState
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.add_circle_outline_rounded,
-                        color: Color(0xFF10B981), size: 22),
+                    Icon(
+                        widget.transactionToEdit != null
+                            ? Icons.edit_note_rounded
+                            : Icons.add_circle_outline_rounded,
+                        color: const Color(0xFF10B981),
+                        size: 22),
                     const SizedBox(width: 8),
-                    Text('LOG TRANSACTION',
+                    Text(
+                        widget.transactionToEdit != null
+                            ? 'EDIT TRANSACTION'
+                            : 'LOG TRANSACTION',
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -437,7 +499,10 @@ class _AddTransactionModalContentState
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('LOG ${_formType.toUpperCase()}',
+                child: Text(
+                    widget.transactionToEdit != null
+                        ? 'UPDATE TRANSACTION'
+                        : 'LOG ${_formType.toUpperCase()}',
                     style: const TextStyle(
                         fontWeight: FontWeight.w900, fontSize: 12)),
               ),

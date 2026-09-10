@@ -121,6 +121,14 @@ class DataController {
     saveTransactions();
   }
 
+  void updateTransaction(TransactionItem updated) {
+    final index = transactions.indexWhere((t) => t.id == updated.id);
+    if (index != -1) {
+      transactions[index] = updated;
+      saveTransactions();
+    }
+  }
+
   void addReminder(ReminderItem reminder) {
     reminders.add(reminder);
     saveReminders();

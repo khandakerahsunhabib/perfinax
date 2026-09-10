@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../controllers/data_controller.dart';
+import '../widgets/app_toast.dart';
 
 class ProfileTab extends StatefulWidget {
   final DataController dataController;
   final VoidCallback onDataChanged;
+  final VoidCallback? onProfileCreated;
 
   const ProfileTab({
     super.key,
     required this.dataController,
     required this.onDataChanged,
+    this.onProfileCreated,
   });
 
   @override
@@ -82,10 +85,16 @@ class ProfileTabState extends State<ProfileTab> {
 
   void _saveProfile() {
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter your full name')));
+      AppToast.show(
+        context,
+        message: 'Please enter your full name',
+        type: ToastType.error,
+      );
       return;
     }
+
+    final bool wasFirstCreation =
+        widget.dataController.userProfile.name.trim().isEmpty;
 
     final user = widget.dataController.userProfile;
     user.name = _nameCtrl.text.trim();
@@ -100,13 +109,21 @@ class ProfileTabState extends State<ProfileTab> {
 
     widget.dataController.saveUserProfile();
     widget.onDataChanged();
+    if (wasFirstCreation) {
+      widget.onProfileCreated?.call();
+    }
 
     setState(() {
       _isEditing = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Profile saved successfully!')));
+    AppToast.show(
+      context,
+      message: wasFirstCreation
+          ? 'Profile created successfully! Income TAX tab is now unlocked.'
+          : 'Profile saved successfully!',
+      type: ToastType.success,
+    );
   }
 
   @override

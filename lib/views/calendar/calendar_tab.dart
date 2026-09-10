@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../controllers/data_controller.dart';
 import '../../models/reminder_item.dart';
+import '../widgets/app_toast.dart';
 
 class CalendarTab extends StatefulWidget {
   final DataController dataController;
@@ -36,8 +37,11 @@ class _CalendarTabState extends State<CalendarTab> {
 
   void _addReminder() {
     if (_reminderTitleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a reminder title')));
+      AppToast.show(
+        context,
+        message: 'Please enter a reminder title',
+        type: ToastType.error,
+      );
       return;
     }
 
@@ -58,8 +62,11 @@ class _CalendarTabState extends State<CalendarTab> {
     _reminderTitleController.clear();
     _reminderAmountController.clear();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reminder added successfully!')));
+    AppToast.show(
+      context,
+      message: 'Reminder added successfully!',
+      type: ToastType.success,
+    );
   }
 
   void _confirmDeleteReminder(ReminderItem item) {
@@ -113,8 +120,10 @@ class _CalendarTabState extends State<CalendarTab> {
                 widget.dataController.removeReminder(item.id);
                 widget.onDataChanged();
                 setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Reminder deleted')),
+                AppToast.show(
+                  context,
+                  message: 'Reminder deleted',
+                  type: ToastType.delete,
                 );
               },
               style: ElevatedButton.styleFrom(

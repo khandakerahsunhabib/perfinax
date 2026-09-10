@@ -61,10 +61,25 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _navigateToProfile() {
+    final bool isProfileCreated =
+        _dataController.userProfile.name.trim().isNotEmpty;
     setState(() {
-      _currentIndex = 4;
+      _currentIndex = isProfileCreated ? 4 : 3;
     });
-    _profileTabKey.currentState?.showViewMode();
+    if (isProfileCreated) {
+      _profileTabKey.currentState?.showViewMode();
+    }
+  }
+
+  int _getEffectiveIndex(bool isProfileCreated) {
+    if (!isProfileCreated) {
+      // When no profile is created, the 4th tab (index 3) and direct profile navigation (index 4)
+      // both display the ProfileTab in creation mode. Income TAX is not accessible yet.
+      if (_currentIndex == 3 || _currentIndex == 4) {
+        return 4; // ProfileTab
+      }
+    }
+    return _currentIndex;
   }
 
   void _openPeriodModal() {
@@ -224,7 +239,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       body: IndexedStack(
-        index: _currentIndex,
+        index: _getEffectiveIndex(isProfileCreated),
         children: [
           DashboardTab(
             dataController: _dataController,
@@ -252,6 +267,11 @@ class _MainScreenState extends State<MainScreen> {
             key: _profileTabKey,
             dataController: _dataController,
             onDataChanged: () => setState(() {}),
+            onProfileCreated: () {
+              setState(() {
+                _currentIndex = 3; // Switch to the newly unlocked Income TAX tab
+              });
+            },
           ),
         ],
       ),
@@ -274,7 +294,8 @@ class _MainScreenState extends State<MainScreen> {
                   isProfileCreated
                       ? Icons.calculate_rounded
                       : Icons.person_rounded,
-                  isProfileCreated ? 'Income TAX' : 'Profile'),
+                  isProfileCreated ? 'Income TAX' : 'Profile',
+                  isProfileCreated: isProfileCreated),
             ],
           ),
         ),
@@ -286,12 +307,15 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 6,
         child: const Icon(Icons.add_rounded, color: Colors.black, size: 28),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const FixedCenterDockedFabLocation(),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _currentIndex == index;
+  Widget _buildNavItem(int index, IconData icon, String label,
+      {bool isProfileCreated = true}) {
+    final bool isSelected = !isProfileCreated && index == 3
+        ? (_currentIndex == 3 || _currentIndex == 4)
+        : _currentIndex == index;
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
       child: Column(
@@ -312,5 +336,21 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
     );
+  }
+}
+
+/// Custom FAB location that stays anchored in the bottom app bar notch
+/// and is never shifted or floated by toasts, snackbars, or other overlays.
+class FixedCenterDockedFabLocation extends FloatingActionButtonLocation {
+  const FixedCenterDockedFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final double fabX = (scaffoldGeometry.scaffoldSize.width -
+            scaffoldGeometry.floatingActionButtonSize.width) /
+        2.0;
+    final double fabY = scaffoldGeometry.contentBottom -
+        (scaffoldGeometry.floatingActionButtonSize.height / 2.0);
+    return Offset(fabX, fabY);
   }
 }
