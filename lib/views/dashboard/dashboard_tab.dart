@@ -42,13 +42,24 @@ class _DashboardTabState extends State<DashboardTab> {
   int _currentPage = 0;
   static const int _itemsPerPage = 5;
 
+  @override
+  void didUpdateWidget(covariant DashboardTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedYear != widget.selectedYear ||
+        oldWidget.selectedMonth != widget.selectedMonth) {
+      _currentPage = 0;
+    }
+  }
+
   void _openAddTransactionModal() {
     showAddTransactionModal(
       context: context,
       dataController: widget.dataController,
       onTransactionAdded: () {
         widget.onDataChanged();
-        setState(() {});
+        setState(() {
+          _currentPage = 0;
+        });
       },
     );
   }
@@ -214,15 +225,30 @@ class _DashboardTabState extends State<DashboardTab> {
     final double remainingBalance = primary + secondary + mfs + cash;
 
     // Filter & Sorting for Transactions list
-    var filteredList = periodTxs;
-    if (_txCatFilter != 'ALL') {
-      filteredList =
-          filteredList.where((t) => t.category == _txCatFilter).toList();
-    }
+    final filteredList = List<TransactionItem>.from(
+      _txCatFilter == 'ALL'
+          ? periodTxs
+          : periodTxs.where((t) => t.category == _txCatFilter),
+    );
     filteredList.sort((a, b) {
-      int cmp = _sortBy == 'amount'
-          ? a.amount.compareTo(b.amount)
-          : a.date.compareTo(b.date);
+      int cmp;
+      if (_sortBy == 'amount') {
+        cmp = a.amount.compareTo(b.amount);
+        if (cmp == 0) {
+          cmp = a.date.compareTo(b.date);
+        }
+      } else {
+        cmp = a.date.compareTo(b.date);
+      }
+      if (cmp == 0) {
+        final aIdNum = int.tryParse(a.id);
+        final bIdNum = int.tryParse(b.id);
+        if (aIdNum != null && bIdNum != null) {
+          cmp = aIdNum.compareTo(bIdNum);
+        } else {
+          cmp = a.id.compareTo(b.id);
+        }
+      }
       return _sortAscending ? cmp : -cmp;
     });
 
@@ -378,7 +404,10 @@ class _DashboardTabState extends State<DashboardTab> {
                               options: allCats,
                               currentValue: _txCatFilter,
                               onSelect: (val) =>
-                                  setState(() => _txCatFilter = val));
+                                  setState(() {
+                                    _txCatFilter = val;
+                                    _currentPage = 0;
+                                  }));
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -395,6 +424,9 @@ class _DashboardTabState extends State<DashboardTab> {
                       ),
                       const SizedBox(width: 6),
                       IconButton(
+                        tooltip: _sortAscending
+                            ? 'Sort Oldest First'
+                            : 'Sort Newest First',
                         icon: Icon(
                             _sortAscending
                                 ? Icons.arrow_upward_rounded
@@ -402,7 +434,10 @@ class _DashboardTabState extends State<DashboardTab> {
                             size: 16,
                             color: const Color(0xFF10B981)),
                         onPressed: () =>
-                            setState(() => _sortAscending = !_sortAscending),
+                            setState(() {
+                              _sortAscending = !_sortAscending;
+                              _currentPage = 0;
+                            }),
                       ),
                     ],
                   ),
@@ -421,7 +456,7 @@ class _DashboardTabState extends State<DashboardTab> {
               : SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, idx) {
-                      final item = filteredList[idx];
+                      final item = paginatedList[idx];
                       final isInc = item.type == 'income' ||
                           item.category == 'Cash Received';
                       return Container(
@@ -529,7 +564,8 @@ class _DashboardTabState extends State<DashboardTab> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _buildPaginationBar(filteredList.length, totalPages),
+                if (filteredList.isNotEmpty)
+                  _buildPaginationBar(filteredList.length, totalPages),
                 const SizedBox(height: 16),
                 _buildSelectedPeriodSummaryCard(
                     periodIncome, periodExpense, periodSavings),
@@ -567,6 +603,7 @@ class _DashboardTabState extends State<DashboardTab> {
   }
 
   Widget _buildPaginationBar(int totalItems, int totalPages) {
+    if (totalItems == 0) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Row(
@@ -585,6 +622,7 @@ class _DashboardTabState extends State<DashboardTab> {
           Row(
             children: [
               InkWell(
+                key: const Key('btn_tx_prev'),
                 onTap: _currentPage > 0
                     ? () => setState(() => _currentPage--)
                     : null,
@@ -615,6 +653,7 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(width: 8),
               InkWell(
+                key: const Key('btn_tx_next'),
                 onTap: _currentPage < totalPages - 1
                     ? () => setState(() => _currentPage++)
                     : null,
