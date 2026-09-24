@@ -80,21 +80,26 @@ class _DashboardTabState extends State<DashboardTab> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return AlertDialog(
           backgroundColor: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: AppColors.rose400.withValues(alpha: 0.3)),
+            side: BorderSide(
+              color: isDark
+                  ? AppColors.rose400.withValues(alpha: 0.3)
+                  : AppColors.rose.withValues(alpha: 0.3),
+            ),
           ),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded,
+              const Icon(Icons.warning_amber_rounded,
                   color: AppColors.rose400, size: 22),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Delete Transaction?',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
                 ),
@@ -103,8 +108,8 @@ class _DashboardTabState extends State<DashboardTab> {
           ),
           content: Text(
             "Are you sure you want to delete this ${item.type.toUpperCase()} entry for '${item.category}' (৳${item.amount.toStringAsFixed(2)})?\nThis action cannot be undone.",
-            style: const TextStyle(
-              color: AppColors.slate300,
+            style: TextStyle(
+              color: isDark ? AppColors.slate300 : const Color(0xFF334155),
               fontSize: 12,
               height: 1.4,
             ),
@@ -113,8 +118,11 @@ class _DashboardTabState extends State<DashboardTab> {
             OutlinedButton(
               onPressed: () => Navigator.pop(ctx),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: AppColors.slate500),
+                foregroundColor:
+                    isDark ? Colors.white : const Color(0xFF334155),
+                side: BorderSide(
+                  color: isDark ? AppColors.slate500 : const Color(0xFFCBD5E1),
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -270,6 +278,8 @@ class _DashboardTabState extends State<DashboardTab> {
     final String mfsBankLabel =
         user.mfs.isNotEmpty ? user.mfs : 'Mobile Bank';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: CustomScrollView(
@@ -296,11 +306,13 @@ class _DashboardTabState extends State<DashboardTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('REMAINING BALANCE (SELECTED MONTH)',
+                    Text('REMAINING BALANCE (SELECTED MONTH)',
                         style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF34D399),
+                            color: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF059669),
                             letterSpacing: 1)),
                     const SizedBox(height: 4),
                     Row(
@@ -312,16 +324,22 @@ class _DashboardTabState extends State<DashboardTab> {
                                 fontWeight: FontWeight.w900,
                                 color: remainingBalance < 0
                                     ? AppColors.rose400
-                                    : Colors.white)),
+                                    : (isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A)))),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                              color: const Color(0xFF064E3B),
+                              color: isDark
+                                  ? const Color(0xFF064E3B)
+                                  : const Color(0xFFD1FAE5),
                               borderRadius: BorderRadius.circular(12)),
-                          child: const Text('Month Isolated',
+                          child: Text('Month Isolated',
                               style: TextStyle(
-                                  color: Color(0xFFA7F3D0),
+                                  color: isDark
+                                      ? const Color(0xFFA7F3D0)
+                                      : const Color(0xFF065F46),
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold)),
                         ),
@@ -355,11 +373,13 @@ class _DashboardTabState extends State<DashboardTab> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Invested / Saved',
+                          Text('Invested / Saved',
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.slate300)),
+                                  color: isDark
+                                      ? AppColors.slate300
+                                      : const Color(0xFF334155))),
                           Text('৳${savings.toStringAsFixed(2)}',
                               style: const TextStyle(
                                   fontSize: 14,
@@ -581,22 +601,52 @@ class _DashboardTabState extends State<DashboardTab> {
   }
 
   Widget _buildBalanceMiniCard(String title, double amount, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155);
+    final amountColor = isDark
+        ? color
+        : (color == AppColors.teal300
+            ? const Color(0xFF0D9488)
+            : color == AppColors.sky400
+                ? const Color(0xFF0284C7)
+                : color == AppColors.pink400
+                    ? const Color(0xFFBE185D)
+                    : color);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(10)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark
+                ? Colors.transparent
+                : AppColors.emerald.withValues(alpha: 0.15),
+          )),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title,
-              style: const TextStyle(fontSize: 9, color: AppColors.slate400),
-              overflow: TextOverflow.ellipsis),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: titleColor,
+              letterSpacing: 0.2,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 2),
-          Text('৳${amount.toStringAsFixed(2)}',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            '৳${amount.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: amountColor,
+            ),
+          ),
         ],
       ),
     );

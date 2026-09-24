@@ -265,18 +265,33 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                                     Theme.of(context).colorScheme.onSurface)),
                         Text(
                             'Occupation: ${user.occupation.isNotEmpty ? user.occupation : "N/A"}',
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.slate300)),
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.slate300
+                                    : const Color(0xFF475569))),
                         Text(
                             'Phone: ${user.phone.isNotEmpty ? user.phone : "N/A"} • Address: ${user.address.isNotEmpty ? user.address : "N/A"}',
-                            style: const TextStyle(
-                                fontSize: 10, color: AppColors.slate400)),
-                        const Divider(color: Color(0xFF061714)),
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.slate400
+                                    : const Color(0xFF64748B))),
+                        Divider(
+                            color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                ? const Color(0xFF061714)
+                                : const Color(0xFFE2E8F0)),
                         Text('Primary: $pBank | Sec: $sBank | Mobile: $mBank',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF34D399))),
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF34D399)
+                                    : const Color(0xFF059669))),
                       ],
                     ),
                   ),
@@ -391,12 +406,14 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'MONTHLY FINANCIAL SUMMARY',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.slate300,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.slate300
+                        : const Color(0xFF334155),
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -704,31 +721,41 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         letterSpacing: 0.8,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4C0519).withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFFB7185).withValues(alpha: 0.3),
-                          width: 0.8,
+                    Builder(builder: (context) {
+                      final isDark =
+                          Theme.of(context).brightness == Brightness.dark;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF4C0519).withValues(alpha: 0.5)
+                              : const Color(0xFFFFE4E6),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFFFB7185).withValues(alpha: 0.3),
+                            width: 0.8,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Visual Distribution',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFB7185),
+                        child: Text(
+                          'Visual Distribution',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? const Color(0xFFFB7185)
+                                : const Color(0xFFE11D48),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Divider(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : const Color(0xFFE2E8F0),
                   height: 1,
                 ),
                 const SizedBox(height: 16),
@@ -1230,12 +1257,14 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'YEARLY INCOME VS EXPENSE COMPARISON',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFE2E8F0),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFFE2E8F0)
+                        : const Color(0xFF1E293B),
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -2040,7 +2069,10 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                       ),
                     ],
                   ),
-                  const Divider(color: Color(0xFF061714)),
+                  Divider(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF061714)
+                          : const Color(0xFFE2E8F0)),
 
                   // Scrollable statement body
                   Expanded(
@@ -2070,20 +2102,30 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                               const SizedBox(height: 2),
                               Text(
                                 'Occupation: ${user.occupation.isNotEmpty ? user.occupation : "N/A"} • Phone: ${user.phone.isNotEmpty ? user.phone : "N/A"}',
-                                style: const TextStyle(
-                                    fontSize: 10, color: AppColors.slate400),
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppColors.slate400
+                                        : const Color(0xFF475569)),
                               ),
                               if (user.address.isNotEmpty)
                                 Text('Address: ${user.address}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 10,
-                                        color: AppColors.slate400)),
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.slate400
+                                            : const Color(0xFF475569))),
                               const SizedBox(height: 4),
                               Text(
                                 'Accounts: [P: ${user.primaryBank.isNotEmpty ? user.primaryBank : "None"}] [S: ${user.secondaryBank.isNotEmpty ? user.secondaryBank : "None"}] [MFS: ${user.mfs.isNotEmpty ? user.mfs : "None"}]',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 9,
-                                    color: Color(0xFF34D399),
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF34D399)
+                                        : const Color(0xFF059669),
                                     fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -2103,10 +2145,13 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                             children: [
                               Text(
                                 'MONTHLY SUMMARY ($periodString)',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.slate300,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.slate300
+                                      : const Color(0xFF334155),
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -2140,12 +2185,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         const SizedBox(height: 16),
 
                         // Section 2: Monthly Income Sources
-                        const Text(
+                        Text(
                           'MONTHLY INCOME SOURCES',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF34D399),
+                            color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF059669),
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -2182,12 +2230,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         const SizedBox(height: 14),
 
                         // Section 3: Monthly Expense Breakdown
-                        const Text(
+                        Text(
                           'MONTHLY EXPENSE BREAKDOWN',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFFB7185),
+                            color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                ? const Color(0xFFFB7185)
+                                : const Color(0xFFE11D48),
                             letterSpacing: 0.5,
                           ),
                         ),
