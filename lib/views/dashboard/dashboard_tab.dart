@@ -40,7 +40,7 @@ class _DashboardTabState extends State<DashboardTab> {
   final String _sortBy = 'date';
   bool _sortAscending = false;
   int _currentPage = 0;
-  static const int _itemsPerPage = 5;
+  static const int _itemsPerPage = 10;
 
   @override
   void didUpdateWidget(covariant DashboardTab oldWidget) {
