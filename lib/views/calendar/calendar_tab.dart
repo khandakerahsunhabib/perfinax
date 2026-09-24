@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../controllers/data_controller.dart';
 import '../../models/reminder_item.dart';
+import '../../models/transaction_item.dart';
 import '../widgets/app_toast.dart';
 
 class CalendarTab extends StatefulWidget {
@@ -143,6 +144,287 @@ class _CalendarTabState extends State<CalendarTab> {
     );
   }
 
+  String _formatAmount(double amount) {
+    if (amount % 1 == 0) {
+      return amount.toInt().toString();
+    }
+    final fixed = amount.toStringAsFixed(2);
+    if (fixed.endsWith('.00')) {
+      return amount.toInt().toString();
+    }
+    if (fixed.endsWith('0')) {
+      return amount.toStringAsFixed(1);
+    }
+    return fixed;
+  }
+
+  String _formatCalendarAmount(double amount) {
+    // Solid round figures like 1000, 2000, 4000 show as 1K, 2K, 4K
+    if (amount >= 1000 && amount % 1000 == 0) {
+      return '${(amount / 1000).toInt()}K';
+    }
+    // Non-round figures (e.g. 450, 550, 1800) show exact amount
+    return _formatAmount(amount);
+  }
+
+  void _showDayDetails({
+    required BuildContext context,
+    required DateTime date,
+    required List<TransactionItem> dayExpenses,
+    required List<TransactionItem> dayIncomes,
+    required List<ReminderItem> dayReminders,
+  }) {
+    final dateStr = DateFormat('MMMM d, yyyy').format(date);
+    final totalInc = dayIncomes.fold(0.0, (s, t) => s + t.amount);
+    final totalExp = dayExpenses.fold(0.0, (s, t) => s + t.amount);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate500.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      dateStr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        if (totalInc > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.emerald.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '+৳${_formatAmount(totalInc)}',
+                              style: const TextStyle(
+                                color: Color(0xFF10B981),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        if (totalExp > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.rose.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '-৳${_formatAmount(totalExp)}',
+                              style: const TextStyle(
+                                color: AppColors.rose400,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (dayIncomes.isEmpty &&
+                    dayExpenses.isEmpty &&
+                    dayReminders.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        'No transactions or reminders on this date.',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.slate400),
+                      ),
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.45,
+                    ),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        if (dayIncomes.isNotEmpty) ...[
+                          const Text('INCOME',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                  letterSpacing: 0.5)),
+                          const SizedBox(height: 6),
+                          ...dayIncomes.map((t) => Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.emerald
+                                          .withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(t.category,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 11)),
+                                          if (t.note.isNotEmpty)
+                                            Text(t.note,
+                                                style: const TextStyle(
+                                                    fontSize: 9,
+                                                    color: AppColors.slate400)),
+                                        ],
+                                      ),
+                                    ),
+                                    Text('+৳${_formatAmount(t.amount)}',
+                                        style: const TextStyle(
+                                            color: Color(0xFF10B981),
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 12)),
+                                  ],
+                                ),
+                              )),
+                          const SizedBox(height: 8),
+                        ],
+                        if (dayExpenses.isNotEmpty) ...[
+                          const Text('EXPENSES',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.rose400,
+                                  letterSpacing: 0.5)),
+                          const SizedBox(height: 6),
+                          ...dayExpenses.map((t) => Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.rose
+                                          .withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(t.category,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 11)),
+                                          if (t.note.isNotEmpty)
+                                            Text(t.note,
+                                                style: const TextStyle(
+                                                    fontSize: 9,
+                                                    color: AppColors.slate400)),
+                                        ],
+                                      ),
+                                    ),
+                                    Text('-৳${_formatAmount(t.amount)}',
+                                        style: const TextStyle(
+                                            color: AppColors.rose400,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 12)),
+                                  ],
+                                ),
+                              )),
+                          const SizedBox(height: 8),
+                        ],
+                        if (dayReminders.isNotEmpty) ...[
+                          const Text('REMINDERS',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sky400,
+                                  letterSpacing: 0.5)),
+                          const SizedBox(height: 6),
+                          ...dayReminders.map((r) => Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.sky400
+                                          .withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(r.title,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11)),
+                                    if (r.amount > 0)
+                                      Text('৳${_formatAmount(r.amount)}',
+                                          style: const TextStyle(
+                                              color: AppColors.rose400,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11)),
+                                  ],
+                                ),
+                              )),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final daysInMonth =
@@ -205,7 +487,7 @@ class _CalendarTabState extends State<CalendarTab> {
                           child: Text(d,
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   color: AppColors.slate400,
                                   fontWeight: FontWeight.bold))))
                       .toList(),
@@ -220,13 +502,14 @@ class _CalendarTabState extends State<CalendarTab> {
                       crossAxisCount: 7,
                       crossAxisSpacing: 4,
                       mainAxisSpacing: 4,
-                      childAspectRatio: 0.9),
+                      childAspectRatio: 0.78),
                   itemCount: daysInMonth + firstDayOffset,
                   itemBuilder: (context, idx) {
                     if (idx < firstDayOffset) return const SizedBox();
                     final day = idx - firstDayOffset + 1;
-                    final dateStr = DateFormat('yyyy-MM-dd').format(DateTime(
-                        widget.selectedYear, widget.selectedMonth + 1, day));
+                    final dayDate = DateTime(
+                        widget.selectedYear, widget.selectedMonth + 1, day);
+                    final dateStr = DateFormat('yyyy-MM-dd').format(dayDate);
 
                     final dayExpenses = transactions
                         .where((t) =>
@@ -258,47 +541,83 @@ class _CalendarTabState extends State<CalendarTab> {
                       bg = const Color(0xFF062018);
                     }
 
-                    return Container(
-                      decoration: BoxDecoration(
-                          color: bg,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: AppColors.emerald.withValues(alpha: 0.2))),
-                      padding: const EdgeInsets.all(2),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('$day',
-                                  style: const TextStyle(
-                                      fontSize: 9,
-                                      color: AppColors.slate400,
-                                      fontWeight: FontWeight.bold)),
-                              if (dayReminders.isNotEmpty)
-                                const Text('🔔', style: TextStyle(fontSize: 8)),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              if (incTotal > 0)
-                                Text(
-                                    '+${incTotal > 1000 ? '${(incTotal / 1000).toStringAsFixed(0)}k' : incTotal.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                        fontSize: 7,
-                                        color: Color(0xFF10B981),
-                                        fontWeight: FontWeight.w900)),
-                              if (expTotal > 0)
-                                Text(
-                                    '-${expTotal > 1000 ? '${(expTotal / 1000).toStringAsFixed(0)}k' : expTotal.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                        fontSize: 7,
-                                        color: AppColors.rose400,
-                                        fontWeight: FontWeight.w900)),
-                            ],
-                          ),
-                        ],
+                    final hasActivity = incTotal > 0 || expTotal > 0;
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        _showDayDetails(
+                          context: context,
+                          date: dayDate,
+                          dayExpenses: dayExpenses,
+                          dayIncomes: dayIncomes,
+                          dayReminders: dayReminders,
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: bg,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: (incTotal > 0 && expTotal > 0)
+                                    ? AppColors.emerald.withValues(alpha: 0.45)
+                                    : incTotal > 0
+                                        ? AppColors.emerald.withValues(alpha: 0.35)
+                                        : expTotal > 0
+                                            ? AppColors.rose400.withValues(alpha: 0.35)
+                                            : AppColors.emerald.withValues(alpha: 0.15),
+                                width: hasActivity ? 1.0 : 0.8)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 3, vertical: 3.5),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('$day',
+                                    style: TextStyle(
+                                        fontSize: 10.5,
+                                        color: hasActivity
+                                            ? Theme.of(context).colorScheme.onSurface
+                                            : AppColors.slate400,
+                                        fontWeight: FontWeight.bold)),
+                                if (dayReminders.isNotEmpty)
+                                  const Text('🔔',
+                                      style: TextStyle(fontSize: 9.5)),
+                              ],
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (incTotal > 0)
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                        '+${_formatCalendarAmount(incTotal)}',
+                                        style: const TextStyle(
+                                            fontSize: 9.5,
+                                            color: Color(0xFF10B981),
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.2)),
+                                  ),
+                                if (expTotal > 0)
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                        '-${_formatCalendarAmount(expTotal)}',
+                                        style: const TextStyle(
+                                            fontSize: 9.5,
+                                            color: AppColors.rose400,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.2)),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -319,11 +638,40 @@ class _CalendarTabState extends State<CalendarTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('SET UPCOMING REMINDER',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF10B981))),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('SET UPCOMING REMINDER',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF10B981))),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF064E3B).withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.notifications_active_outlined,
+                              size: 11, color: Color(0xFF34D399)),
+                          SizedBox(width: 4),
+                          Text('Dual Alerts (1-Day Before & Due Day)',
+                              style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF34D399))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [

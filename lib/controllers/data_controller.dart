@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction_item.dart';
 import '../models/reminder_item.dart';
 import '../models/user_profile.dart';
+import '../services/notification_service.dart';
 
 class DataController {
   List<TransactionItem> transactions = [];
@@ -36,6 +37,7 @@ class DataController {
         if (remString != null) {
           final List decoded = jsonDecode(remString);
           reminders = decoded.map((e) => ReminderItem.fromJson(e)).toList();
+          NotificationService.instance.syncAllReminders(reminders);
         }
       } catch (e) {
         debugPrint('Error decoding reminders: $e');
@@ -132,11 +134,13 @@ class DataController {
   void addReminder(ReminderItem reminder) {
     reminders.add(reminder);
     saveReminders();
+    NotificationService.instance.scheduleDualAlerts(reminder);
   }
 
   void removeReminder(String id) {
     reminders.removeWhere((r) => r.id == id);
     saveReminders();
+    NotificationService.instance.cancelDualAlerts(id);
   }
 
   String exportBackupJson() {
@@ -183,6 +187,7 @@ class DataController {
       await saveTransactions();
       await saveReminders();
       await saveUserProfile();
+      NotificationService.instance.syncAllReminders(reminders);
       return true;
     } catch (e) {
       debugPrint('Error importing backup JSON: $e');

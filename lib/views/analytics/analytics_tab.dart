@@ -758,7 +758,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                                 height: 200,
                                 child: PieChart(
                                   PieChartData(
-                                    sectionsSpace: 2,
+                                    sectionsSpace: 1,
                                     centerSpaceRadius: 0,
                                     startDegreeOffset: -90,
                                     sections: pieChartEntries
@@ -776,7 +776,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                                         radius: 82,
                                         borderSide: const BorderSide(
                                           color: Color(0xFF030A08),
-                                          width: 1.5,
+                                          width: 0.6,
                                         ),
                                       );
                                     }).toList(),
