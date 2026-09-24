@@ -870,8 +870,10 @@ class _DashboardTabState extends State<DashboardTab> {
       final jsonString = widget.dataController.exportBackupJson();
       final fileName =
           'perfinax_backup_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.json';
+      final bytes = utf8.encode(jsonString);
 
       Uri? savedUri;
+      bool pickerFailed = false;
 
       try {
         savedUri = await FilePicker.saveFile(
@@ -879,25 +881,57 @@ class _DashboardTabState extends State<DashboardTab> {
           fileName: fileName,
           type: FileType.custom,
           allowedExtensions: ['json'],
-          bytes: utf8.encode(jsonString),
+          bytes: bytes,
         );
-      } catch (_) {}
+      } catch (_) {
+        pickerFailed = true;
+      }
+
+      // If user cancelled the picker dialog, do not proceed with fallback save or error
+      if (!pickerFailed && savedUri == null) {
+        return;
+      }
 
       String? savedPath;
       if (savedUri != null) {
-        try {
-          savedPath = savedUri.toFilePath();
-        } catch (_) {
-          savedPath = savedUri.path;
-        }
-      }
+        if (savedUri.isScheme('content')) {
+          // On Android (SAF), FilePicker already wrote the bytes via ContentResolver.
+          // Never run dart:io File operations on content URIs as they throw PathNotFoundException.
+          String decoded = savedUri.path;
+          try {
+            decoded = Uri.decodeComponent(savedUri.path);
+          } catch (_) {}
 
-      if (savedPath != null && savedPath.isNotEmpty) {
-        final file = File(savedPath);
-        if (!file.existsSync() || file.lengthSync() == 0) {
-          await file.writeAsString(jsonString);
+          if (decoded.contains(':')) {
+            String pathPart = decoded.split(':').last;
+            while (pathPart.startsWith('/')) {
+              pathPart = pathPart.substring(1);
+            }
+            savedPath = pathPart.isNotEmpty ? pathPart : fileName;
+          } else if (decoded.startsWith('/document/')) {
+            savedPath = decoded.substring('/document/'.length);
+          } else {
+            savedPath = decoded.isNotEmpty ? decoded : fileName;
+          }
+
+          if (RegExp(r'^\d+$').hasMatch(savedPath)) {
+            savedPath = 'Downloads/$fileName';
+          }
+        } else {
+          // Desktop or iOS (file:// URI or regular path)
+          try {
+            final filePath = savedUri.toFilePath();
+            savedPath = filePath;
+            final file = File(filePath);
+            if (!file.existsSync() || file.lengthSync() == 0) {
+              await file.writeAsString(jsonString);
+            }
+          } catch (_) {
+            savedPath = savedUri.path;
+          }
         }
       } else {
+        // Fallback for unsupported platform or picker exception
         final docsDir = await getApplicationDocumentsDirectory();
         final file = File('${docsDir.path}/$fileName');
         await file.writeAsString(jsonString);

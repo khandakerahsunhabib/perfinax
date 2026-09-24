@@ -28,12 +28,21 @@ class _CalendarTabState extends State<CalendarTab> {
   final TextEditingController _reminderTitleController = TextEditingController();
   final TextEditingController _reminderAmountController = TextEditingController();
   DateTime _reminderDate = DateTime.now();
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 9, minute: 0);
 
   @override
   void dispose() {
     _reminderTitleController.dispose();
     _reminderAmountController.dispose();
     super.dispose();
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    final minute = time.minute.toString().padLeft(2, '0');
+    final hourStr = hour.toString().padLeft(2, '0');
+    return '$hourStr:$minute $period';
   }
 
   void _addReminder() {
@@ -54,7 +63,14 @@ class _CalendarTabState extends State<CalendarTab> {
       title: _reminderTitleController.text.trim(),
       amount: amount,
       type: 'expense',
-      date: _reminderDate,
+      date: DateTime(
+        _reminderDate.year,
+        _reminderDate.month,
+        _reminderDate.day,
+        _reminderTime.hour,
+        _reminderTime.minute,
+      ),
+      time: _formatTimeOfDay(_reminderTime),
     );
 
     widget.dataController.addReminder(reminder);
@@ -62,6 +78,10 @@ class _CalendarTabState extends State<CalendarTab> {
 
     _reminderTitleController.clear();
     _reminderAmountController.clear();
+    setState(() {
+      _reminderDate = DateTime.now();
+      _reminderTime = const TimeOfDay(hour: 9, minute: 0);
+    });
 
     AppToast.show(
       context,
@@ -400,10 +420,36 @@ class _CalendarTabState extends State<CalendarTab> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(r.title,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11)),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(r.title,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 11)),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.alarm_rounded,
+                                                  size: 10,
+                                                  color: AppColors.sky400),
+                                              const SizedBox(width: 3),
+                                              Text(
+                                                r.time != null &&
+                                                        r.time!.isNotEmpty
+                                                    ? r.time!
+                                                    : '09:00 AM',
+                                                style: const TextStyle(
+                                                    fontSize: 9,
+                                                    color: AppColors.slate400),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     if (r.amount > 0)
                                       Text('৳${_formatAmount(r.amount)}',
                                           style: const TextStyle(
@@ -638,39 +684,13 @@ class _CalendarTabState extends State<CalendarTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('SET UPCOMING REMINDER',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF10B981))),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF064E3B).withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.notifications_active_outlined,
-                              size: 11, color: Color(0xFF34D399)),
-                          SizedBox(width: 4),
-                          Text('Dual Alerts (1-Day Before & Due Day)',
-                              style: TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF34D399))),
-                        ],
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'SET UPCOMING REMINDER',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -714,6 +734,7 @@ class _CalendarTabState extends State<CalendarTab> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
+                    // Date Picker
                     Expanded(
                       child: InkWell(
                         onTap: () async {
@@ -725,33 +746,105 @@ class _CalendarTabState extends State<CalendarTab> {
                           if (d != null) setState(() => _reminderDate = d);
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
                               color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Text(
-                              DateFormat('yyyy-MM-dd').format(_reminderDate),
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.emerald.withValues(alpha: 0.15),
+                              )),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.calendar_today_rounded,
+                                  size: 13, color: Color(0xFF10B981)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  DateFormat('yyyy-MM-dd').format(_reminderDate),
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _addReminder,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                    // Alarm Time Picker
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _reminderTime,
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme:
+                                      Theme.of(context).colorScheme.copyWith(
+                                            primary: const Color(0xFF10B981),
+                                            onPrimary: Colors.black,
+                                          ),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (picked != null) {
+                            setState(() => _reminderTime = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.emerald.withValues(alpha: 0.15),
+                              )),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.alarm_rounded,
+                                  size: 14, color: Color(0xFF10B981)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _formatTimeOfDay(_reminderTime),
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: const Text('ADD REMINDER',
-                          style: TextStyle(
-                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _addReminder,
+                    icon: const Icon(Icons.add_alert_rounded, size: 14),
+                    label: const Text('ADD REMINDER',
+                        style: TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -831,12 +924,31 @@ class _CalendarTabState extends State<CalendarTab> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 2),
-                                  Text(
-                                    'Due: ${DateFormat('yyyy-MM-dd').format(item.date)}',
-                                    style: const TextStyle(
-                                      fontSize: 9,
-                                      color: AppColors.slate400,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Due: ${DateFormat('yyyy-MM-dd').format(item.date)}',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          color: AppColors.slate400,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Icon(Icons.alarm_rounded,
+                                          size: 10, color: Color(0xFF34D399)),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        item.time != null &&
+                                                item.time!.isNotEmpty
+                                            ? item.time!
+                                            : '09:00 AM',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          color: Color(0xFF34D399),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

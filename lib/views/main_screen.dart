@@ -10,7 +10,7 @@ import 'tax/tax_tab.dart';
 import 'profile/profile_tab.dart';
 import 'widgets/combined_period_modal.dart';
 import 'widgets/add_transaction_modal.dart';
-import 'widgets/theme_selector_modal.dart';
+import '../controllers/theme_controller.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -141,16 +141,32 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF10B981)
-                  : const Color(0xFF059669),
-              size: 22,
-            ),
-            tooltip: 'Theme Options',
-            onPressed: () => showThemeSelectorModal(context),
+          ListenableBuilder(
+            listenable: ThemeController.instance,
+            builder: (context, _) {
+              final isDark = ThemeController.instance.isDarkMode;
+              return IconButton(
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder: (child, anim) => RotationTransition(
+                    turns: anim,
+                    child: FadeTransition(opacity: anim, child: child),
+                  ),
+                  child: Icon(
+                    isDark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    key: ValueKey<bool>(isDark),
+                    color: isDark
+                        ? const Color(0xFFFBBF24)
+                        : const Color(0xFF059669),
+                    size: 22,
+                  ),
+                ),
+                tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                onPressed: () => ThemeController.instance.toggleTheme(),
+              );
+            },
           ),
           InkWell(
             onTap: _navigateToProfile,

@@ -44,4 +44,10 @@ class ThemeController extends ChangeNotifier {
       debugPrint('Error saving theme preference: $e');
     }
   }
+
+  Future<void> toggleTheme() async {
+    final nextMode =
+        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    await setThemeMode(nextMode);
+  }
 }

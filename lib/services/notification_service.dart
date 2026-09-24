@@ -95,28 +95,61 @@ class NotificationService {
     return baseId * 2 + 1;
   }
 
-  /// Calculate the trigger time for 1 day before at 09:00 AM
-  DateTime getDayBeforeTriggerTime(DateTime reminderDate) {
+  /// Calculate the trigger time for 1 day before at custom or default 09:00 AM
+  DateTime getDayBeforeTriggerTime(DateTime reminderDate,
+      {int hour = 9, int minute = 0}) {
     return DateTime(
       reminderDate.year,
       reminderDate.month,
       reminderDate.day - 1,
-      9,
-      0,
+      hour,
+      minute,
       0,
     );
   }
 
-  /// Calculate the trigger time for the same day at 09:00 AM
-  DateTime getSameDayTriggerTime(DateTime reminderDate) {
+  /// Calculate the trigger time for the same day at custom or default 09:00 AM
+  DateTime getSameDayTriggerTime(DateTime reminderDate,
+      {int hour = 9, int minute = 0}) {
     return DateTime(
       reminderDate.year,
       reminderDate.month,
       reminderDate.day,
-      9,
-      0,
+      hour,
+      minute,
       0,
     );
+  }
+
+  /// Parse time string like "09:00 AM", "2:30 PM", or "14:30" into hour and minute
+  static ({int hour, int minute})? parseTimeString(String str) {
+    try {
+      final trimmed = str.trim();
+      final isPm = trimmed.toLowerCase().contains('pm');
+      final isAm = trimmed.toLowerCase().contains('am');
+      final cleaned = trimmed.replaceAll(RegExp(r'[^\d:]'), '');
+      final parts = cleaned.split(':');
+      if (parts.length >= 2) {
+        int h = int.tryParse(parts[0]) ?? 9;
+        int m = int.tryParse(parts[1]) ?? 0;
+        if (isPm && h < 12) h += 12;
+        if (isAm && h == 12) h = 0;
+        return (hour: h, minute: m);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Extract hour and minute configured for this reminder
+  ({int hour, int minute}) getReminderAlarmTime(ReminderItem reminder) {
+    if (reminder.time != null && reminder.time!.isNotEmpty) {
+      final parsed = parseTimeString(reminder.time!);
+      if (parsed != null) return parsed;
+    }
+    if (reminder.date.hour != 0 || reminder.date.minute != 0) {
+      return (hour: reminder.date.hour, minute: reminder.date.minute);
+    }
+    return (hour: 9, minute: 0);
   }
 
   String _formatAmount(double amount) {
@@ -134,18 +167,30 @@ class NotificationService {
     }
   }
 
-  /// Schedule both 1-day-before alert and same-day alert
+  /// Schedule both 1-day-before alert and same-day alert at user-chosen alarm time
   Future<void> scheduleDualAlerts(ReminderItem reminder) async {
     try {
       _ensureTimeZones();
       final now = DateTime.now();
-      final dayBeforeTime = getDayBeforeTriggerTime(reminder.date);
-      final sameDayTime = getSameDayTriggerTime(reminder.date);
+      final alarmTime = getReminderAlarmTime(reminder);
+      final dayBeforeTime = getDayBeforeTriggerTime(
+        reminder.date,
+        hour: alarmTime.hour,
+        minute: alarmTime.minute,
+      );
+      final sameDayTime = getSameDayTriggerTime(
+        reminder.date,
+        hour: alarmTime.hour,
+        minute: alarmTime.minute,
+      );
 
       final dayBeforeId = getDayBeforeNotificationId(reminder.id);
       final sameDayId = getSameDayNotificationId(reminder.id);
 
-      final amountStr = reminder.amount > 0 ? ' (৳${_formatAmount(reminder.amount)})' : '';
+      final amountStr =
+          reminder.amount > 0 ? ' (৳${_formatAmount(reminder.amount)})' : '';
+      final timeStr = reminder.time ??
+          '${alarmTime.hour.toString().padLeft(2, '0')}:${alarmTime.minute.toString().padLeft(2, '0')}';
 
       // Notification details configuration
       const androidDetails = AndroidNotificationDetails(
@@ -170,32 +215,36 @@ class NotificationService {
         macOS: iosDetails,
       );
 
-      // Alert 1: 1 Day Before at 09:00 AM
+      // Alert 1: 1 Day Before
       if (dayBeforeTime.isAfter(now)) {
         await _notificationsPlugin.zonedSchedule(
           id: dayBeforeId,
           title: 'Upcoming Reminder Tomorrow: ${reminder.title}',
-          body: 'Due tomorrow$amountStr. Plan your transaction ahead.',
+          body:
+              'Due tomorrow$amountStr at $timeStr. Plan your transaction ahead.',
           scheduledDate: tz.TZDateTime.from(dayBeforeTime, tz.local),
           notificationDetails: notificationDetails,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           payload: 'reminder:${reminder.id}:day_before',
         );
-        debugPrint('Scheduled Alert 1 (1-day-before) for "${reminder.title}" at $dayBeforeTime');
+        debugPrint(
+            'Scheduled Alert 1 (1-day-before) for "${reminder.title}" at $dayBeforeTime');
       }
 
-      // Alert 2: Same Day at 09:00 AM
+      // Alert 2: Same Day
       if (sameDayTime.isAfter(now)) {
         await _notificationsPlugin.zonedSchedule(
           id: sameDayId,
           title: 'Reminder Due Today: ${reminder.title}',
-          body: 'Due today$amountStr! Don\'t forget to complete this transaction.',
+          body:
+              'Due today$amountStr at $timeStr! Don\'t forget to complete this transaction.',
           scheduledDate: tz.TZDateTime.from(sameDayTime, tz.local),
           notificationDetails: notificationDetails,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           payload: 'reminder:${reminder.id}:same_day',
         );
-        debugPrint('Scheduled Alert 2 (same-day) for "${reminder.title}" at $sameDayTime');
+        debugPrint(
+            'Scheduled Alert 2 (same-day) for "${reminder.title}" at $sameDayTime');
       }
     } catch (e) {
       debugPrint('NotificationService: Failed to schedule dual alerts: $e');

@@ -4,6 +4,7 @@ class ReminderItem {
   final double amount;
   final String type; // 'expense', 'income'
   final DateTime date;
+  final String? time; // e.g. '09:00 AM'
 
   ReminderItem({
     required this.id,
@@ -11,6 +12,7 @@ class ReminderItem {
     required this.amount,
     required this.type,
     required this.date,
+    this.time,
   });
 
   Map<String, dynamic> toJson() => {
@@ -19,6 +21,7 @@ class ReminderItem {
         'amount': amount,
         'type': type,
         'date': date.toIso8601String(),
+        if (time != null) 'time': time,
       };
 
   factory ReminderItem.fromJson(Map<String, dynamic> json) => ReminderItem(
@@ -27,5 +30,6 @@ class ReminderItem {
         amount: (json['amount'] as num).toDouble(),
         type: json['type'],
         date: DateTime.parse(json['date']),
+        time: json['time'] as String?,
       );
 }
